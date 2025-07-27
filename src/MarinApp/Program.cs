@@ -32,15 +32,15 @@ namespace MarinApp
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
 
-            // Adds the configuration provider for the application
-            builder.AddAppConfigurationProvider();
-
             // Add the database context
             builder.Services.AddDbContext<AppDataContext>(options =>
             {
                 options.UseNpgsql(DbConnectionStringHelper.GetConnectionString())
                 .LogTo(Console.WriteLine);
             });
+
+            // Adds the configuration provider for the application
+            builder.AddAppConfigurationProvider();
 
             // Add the application OAuth Authentication
             builder.Services.AddApplicationAuth();
