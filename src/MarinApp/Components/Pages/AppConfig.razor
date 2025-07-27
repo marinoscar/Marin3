@@ -41,8 +41,8 @@
         await base.OnInitializedAsync();
     }
 
-    private void OnCommittedItemChanges(AppConfiguration item)
+    private async Task OnCommittedItemChanges(AppConfiguration item)
     {
-        Service.AddOrUpdate(item);
+        await Service.AddOrUpdateAppConfigurationAsync(item, CancellationToken.None);
     }
 }
