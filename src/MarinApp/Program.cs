@@ -51,6 +51,13 @@ namespace MarinApp
                 app.UseExceptionHandler("/Error");
             }
 
+            /*** AuthMate: Additional configuration  ****/
+            app.MapControllers();
+            app.UseRouting();
+            app.UseAuthorization();
+            app.UseAuthentication();
+            /*** AuthMate:                           ****/
+
             app.UseAntiforgery();
 
             app.MapStaticAssets();
