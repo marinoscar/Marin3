@@ -22,7 +22,7 @@ namespace MarinApp
 
             // Setup the configuration data source
             var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
-            var connString = DbConnectionStringHelper.GetConnectionString("marinapp");
+            var connString = DbConnectionStringHelper.GetConnectionString();
             builder.Configuration.AddDbConfigurationProvider(
                 options => options.UseNpgsql(connString),
                 env);
@@ -32,6 +32,10 @@ namespace MarinApp
             {
                 options.UseNpgsql(connString);
             });
+
+            // Add the logging
+            builder.Services.AddLogging();
+            builder.Logging.AddConsole();
 
             var app = builder.Build();
 

@@ -43,7 +43,7 @@ namespace MarinApp.Core.Configuration
         /// <item><description><c>DB_PASSWORD</c>: Database password (default: "your_password")</description></item>
         /// </list>
         /// </remarks>
-        public static string GetConnectionString(string dbName)
+        public static string GetConnectionString(string dbName = "marinapp")
         {
             var password = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "your_password";
             var port = Environment.GetEnvironmentVariable("DB_PORT") ?? "5432";
@@ -58,5 +58,6 @@ namespace MarinApp.Core.Configuration
             };
             return builder.ConnectionString;
         }
+
     }
 }
