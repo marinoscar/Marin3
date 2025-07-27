@@ -1,4 +1,28 @@
-﻿@using Microsoft.AspNetCore.Components.Authorization
+﻿@using Luval.AuthMate.Core
+@using Luval.AuthMate.Core.Entities
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Web
+
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@inject HttpClient HttpClient
+@inject IHttpContextAccessor contextAccessor
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/UAParser.js/1.0.2/ua-parser.min.js"></script>
+<script>
+    async function getDeviceInfo() {
+
+    // Use UAParser.js to get OS and Browser details
+    const parser = new UAParser();
+    const result = parser.getResult();
+
+    return {
+    IpAddress: '', // Extracted from the external service
+    OS: `${result.os.name} ${result.os.version}`,
+    Browser: `${result.browser.name} ${result.browser.version}`
+    };
+    }
+</script>
 
 <CascadingAuthenticationState>
     <AuthorizeView>
@@ -6,11 +30,62 @@
             <MudButton Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Login" Color="Color.Primary">Sign Out</MudButton>
         </Authorized>
         <NotAuthorized>
-            <MudButton Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Logout" Color="Color.Default">Sign In</MudButton>
+            <MudButton @onclick="OnClickNavigate" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Logout" Color="Color.Default">Sign In</MudButton>
         </NotAuthorized>
     </AuthorizeView>
 </CascadingAuthenticationState>
 
 @code {
 
+    /// <summary>
+    /// Gets or sets the URL to navigate to when the button is clicked.
+    /// </summary>
+    [Parameter]
+    public string NavigateTo { get; set; } = "/api/auth/login";
+
+    /// <summary>
+    /// Gets or sets the name of the authenticator provider i.e. Google, Facebook, Microsoft, etc.
+    /// </summary>
+    [Parameter]
+    public string ProviderName { get; set; } = "Google";
+
+    /// <summary>
+    /// Gets or sets the return URL after authentication.
+    /// </summary>
+    [Parameter]
+    public string ReturnUrl { get; set; } = "/";
+
+    private DeviceInfo DeviceInfo { get; set; } = default(DeviceInfo);
+
+
+    private void OnClickNavigate(MouseEventArgs e)
+    {
+        var info = string.Empty;
+        if (DeviceInfo != null) info = DeviceInfo.ToBase64();
+        info = HttpUtility.HtmlEncode(info);
+        Navigation.NavigateTo(string.Format("{0}?provider={1}&deviceInfo={2}&returnUrl={3}", NavigateTo, ProviderName, info, HttpUtility.HtmlEncode(ReturnUrl)));
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        await GetDeviceInfo();
+    }
+
+    private async Task GetDeviceInfo()
+    {
+        // Call the JavaScript function
+        DeviceInfo deviceInfo = default;
+        try
+        {
+            deviceInfo = await JSRuntime.InvokeAsync<DeviceInfo>("getDeviceInfo");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+        if (deviceInfo != null)
+            deviceInfo.IpAddress = contextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+        DeviceInfo = deviceInfo;
+    }
 }
