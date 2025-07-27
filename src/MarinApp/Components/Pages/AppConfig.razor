@@ -8,7 +8,9 @@
 @inject AppConfigurationService Service
 @inject ILogger<AppConfig> Logger
 
-<MudDataGrid Items="@AppConfigurations">
+<MudDataGrid Items="@AppConfigurations"
+             EditMode="DataGridEditMode.Form">
+             
     <ToolBarContent>
         <MudText Typo="Typo.h3">Application Configuration</MudText>
         <MudSpacer />
@@ -17,6 +19,11 @@
         <PropertyColumn Property="x => x.Key" Sortable="true" Filterable="true" />
         <PropertyColumn Property="x => x.Value" Sortable="true" Filterable="true" />
         <PropertyColumn Property="x => x.Environment" Sortable="true" Filterable="true" />
+        <TemplateColumn CellClass="d-flex justify-end">
+            <CellTemplate>
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="@context.Actions.StartEditingItemAsync" />
+            </CellTemplate>
+        </TemplateColumn>
     </Columns>
 </MudDataGrid>
 
