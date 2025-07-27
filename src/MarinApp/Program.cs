@@ -1,4 +1,8 @@
 using MarinApp.Components;
+using MarinApp.Core.Configuration;
+using MarinApp.Core.Data;
+using MarinApp.Core.Extensions;
+using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
 
 namespace MarinApp
@@ -15,6 +19,19 @@ namespace MarinApp
             // Add services to the container.
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
+
+            // Setup the configuration data source
+            var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+            var connString = DbConnectionStringHelper.GetConnectionString("marinapp");
+            builder.Configuration.AddDbConfigurationProvider(
+                options => options.UseNpgsql(connString),
+                env);
+
+            // Add the database context
+            builder.Services.AddDbContext<AppDataContext>(options =>
+            {
+                options.UseNpgsql(connString);
+            });
 
             var app = builder.Build();
 
