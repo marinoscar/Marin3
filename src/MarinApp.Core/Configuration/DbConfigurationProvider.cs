@@ -17,52 +17,26 @@ namespace MarinApp.Core.Configuration
     /// </summary>
     public class DbConfigurationProvider : ConfigurationProvider
     {
-        /// <summary>
-        /// The action used to configure the <see cref="DbContextOptionsBuilder"/> for <see cref="AppDataContext"/>.
-        /// </summary>
-        private readonly Action<DbContextOptionsBuilder> _optionsAction;
-
-        /// <summary>
-        /// The environment name (e.g., "Development", "Staging", "Production") for which to load configuration.
-        /// </summary>
+        
+        private readonly AppDataContext _dataContext;
         private readonly string _environment;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DbConfigurationProvider"/> class.
-        /// </summary>
-        /// <param name="optionsAction">
-        /// An action to configure the <see cref="DbContextOptionsBuilder"/> for the database context.
-        /// </param>
-        /// <param name="environment">
-        /// The environment name for which to load configuration values.
-        /// </param>
-        /// <exception cref="ArgumentNullException">
-        /// Thrown if <paramref name="optionsAction"/> or <paramref name="environment"/> is null.
-        /// </exception>
-        public DbConfigurationProvider(Action<DbContextOptionsBuilder> optionsAction, string environment)
+       
+        public DbConfigurationProvider(AppDataContext dataContext, string environment)
         {
-            _optionsAction = optionsAction ?? throw new ArgumentNullException(nameof(optionsAction));
+            _dataContext = dataContext ?? throw new ArgumentNullException(nameof(dataContext));
             _environment = environment ?? throw new ArgumentNullException(nameof(environment));
         }
 
-        /// <summary>
-        /// Loads configuration values from the database.
-        /// This method ensures the configuration table exists, then loads all shared and environment-specific
-        /// configuration entries. Environment-specific entries override shared entries with the same key.
-        /// </summary>
         public override void Load()
         {
-            var builder = new DbContextOptionsBuilder<AppDataContext>();
-            _optionsAction(builder);
-
-            using var dbContext = new AppDataContext(builder.Options);
-
+            
             // Ensure the configuration table exists; creates it if it does not (using EF migrations if available).
-            dbContext.Database.EnsureCreated();
+            _dataContext.Database.EnsureCreated();
 
             // Retrieve configuration entries: shared (Environment == null) and environment-specific.
             // Environment-specific entries override shared ones with the same key.
-            var configEntries = dbContext.AppConfiguration
+            var configEntries = _dataContext.AppConfiguration
                 .Where(e => e.Environment == null || e.Environment == _environment)
                 .OrderBy(e => e.Environment == null ? 0 : 1) // Shared first, then environment-specific.
                 .ToList();
