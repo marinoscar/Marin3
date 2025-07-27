@@ -132,20 +132,6 @@ namespace MarinApp.Configuration
             return s;
         }
 
-        /// <summary>
-        /// Adds a custom configuration provider that loads application settings from a PostgreSQL database.
-        ///
-        /// This method performs the following steps:
-        /// <list type="number">
-        /// <item>Determines the current ASP.NET Core environment by reading the <c>ASPNETCORE_ENVIRONMENT</c> environment variable, defaulting to <c>Production</c> if not set.</item>
-        /// <item>Retrieves the database connection string using <see cref="DbConnectionStringHelper.GetConnectionString"/>.</item>
-        /// <item>Adds a database-backed configuration provider to the application's configuration pipeline using <c>AddDbConfigurationProvider</c>.
-        /// The provider is configured to use Npgsql for PostgreSQL and logs database operations to the console for diagnostics.</item>
-        /// <item>Passes the current environment name to the configuration provider, allowing environment-specific configuration loading.</item>
-        /// </list>
-        /// </summary>
-        /// <param name="builder">The <see cref="WebApplicationBuilder"/> to configure.</param>
-        /// <returns>The same <see cref="WebApplicationBuilder"/> instance for chaining.</returns>
         public static WebApplicationBuilder AddAppConfigurationProvider(this WebApplicationBuilder builder)
         {
             // Setup the configuration data source
