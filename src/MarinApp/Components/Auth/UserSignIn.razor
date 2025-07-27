@@ -27,10 +27,10 @@
 <CascadingAuthenticationState>
     <AuthorizeView>
         <Authorized>
-            <MudButton Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Login" Color="Color.Primary">Sign Out</MudButton>
+            <MudButton @onclick="OnClickLogout" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Login" Color="Color.Primary">Sign Out</MudButton>
         </Authorized>
         <NotAuthorized>
-            <MudButton @onclick="OnClickNavigate" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Logout" Color="Color.Default">Sign In</MudButton>
+            <MudButton @onclick="OnClickLogin" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Logout" Color="Color.Default">Sign In</MudButton>
         </NotAuthorized>
     </AuthorizeView>
 </CascadingAuthenticationState>
@@ -38,19 +38,25 @@
 @code {
 
     /// <summary>
-    /// Gets or sets the URL to navigate to when the button is clicked.
+    /// Gets or sets the authentication endpoint URL to navigate to when signing in.
     /// </summary>
     [Parameter]
-    public string NavigateTo { get; set; } = "/api/auth/login";
+    public string LoginUrl { get; set; } = "/api/auth/login";
 
     /// <summary>
-    /// Gets or sets the name of the authenticator provider i.e. Google, Facebook, Microsoft, etc.
+    /// Gets or sets the logout endpoint URL to navigate to when signing out.
+    /// </summary>
+    [Parameter]
+    public string LogoutUrl { get; set; } = "/api/auth/logout";
+
+    /// <summary>
+    /// Gets or sets the name of the external authentication provider (e.g., Google, Facebook, Microsoft) to use for sign in.
     /// </summary>
     [Parameter]
     public string ProviderName { get; set; } = "Google";
 
     /// <summary>
-    /// Gets or sets the return URL after authentication.
+    /// Gets or sets the URL to redirect to after authentication completes.
     /// </summary>
     [Parameter]
     public string ReturnUrl { get; set; } = "/";
@@ -58,13 +64,18 @@
     private DeviceInfo DeviceInfo { get; set; } = default(DeviceInfo);
 
 
-    private void OnClickNavigate(MouseEventArgs e)
+    private void OnClickLogin(MouseEventArgs e)
     {
         var info = string.Empty;
         if (DeviceInfo != null) info = DeviceInfo.ToBase64();
         var returnUrl = HttpUtility.UrlEncode(ReturnUrl);
         info = HttpUtility.UrlEncode(info);
-        Navigation.NavigateTo(string.Format("{0}?provider={1}&deviceInfo={2}&returnUrl={3}", NavigateTo, ProviderName, info, returnUrl));
+        Navigation.NavigateTo(string.Format("{0}?provider={1}&deviceInfo={2}&returnUrl={3}", LoginUrl, ProviderName, info, returnUrl), true);
+    }
+
+    private void OnClickLogout(MouseEventArgs e)
+    {
+        Navigation.NavigateTo(LogoutUrl, true);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
