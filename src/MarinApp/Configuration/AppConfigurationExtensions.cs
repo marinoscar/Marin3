@@ -89,7 +89,7 @@ namespace MarinApp.Configuration
             {
                 var config = s.BuildServiceProvider().GetRequiredService<IConfiguration>();
                 var connString = DbConnectionStringHelper.GetConnectionString();
-                var dbContext = new PostgresAuthMateContext(connString);
+
 
                 // Add the database context for AuthMate
                 s.AddAuthMateServices(
@@ -98,7 +98,7 @@ namespace MarinApp.Configuration
                 (s) =>
                 {
                     // Returns the postgresql implementation
-                    return dbContext;
+                    return new PostgresAuthMateContext(connString);
                 });
 
                 // Adds the Google Authentication
@@ -114,7 +114,7 @@ namespace MarinApp.Configuration
 
                 // Creates the context
                 var contextHelper = new AuthMateContextHelper(
-                        dbContext,
+                        new PostgresAuthMateContext(connString),
                         new ColorConsoleLogger<AuthMateContextHelper>());
 
                 // Ensure the database is created and initialize it with the owner email and required initial records
