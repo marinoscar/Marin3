@@ -8,29 +8,28 @@
 @inject AppConfigurationService Service
 @inject ILogger<AppConfig> Logger
 
-<h3>Application Configuration</h3>
-
-<MudDataGrid Items="@Configurations">
+<MudDataGrid Items="@AppConfigurations">
+    <ToolBarContent>
+        <MudText Typo="Typo.h3">Application Configuration</MudText>
+        <MudSpacer />
+    </ToolBarContent>
     <Columns>
-        <PropertyColumn Property="x => x.Key" Title="Nr" />
-        <PropertyColumn Property="x => x.Value" />
-        <PropertyColumn Property="x => x.Environment" />
+        <PropertyColumn Property="x => x.Key" Sortable="true" Filterable="true" />
+        <PropertyColumn Property="x => x.Value" Sortable="true" Filterable="true" />
+        <PropertyColumn Property="x => x.Environment" Sortable="true" Filterable="true" />
     </Columns>
 </MudDataGrid>
 
 @code {
 
-    public IQueryable<AppConfiguration> Configurations { get; set; }
+    public IQueryable<AppConfiguration> AppConfigurations { get; set; } = Enumerable.Empty<AppConfiguration>().AsQueryable();
 
     protected override async Task OnInitializedAsync()
     {
-        Configurations = await Service.GetAppConfigurationsAsync(CancellationToken.None);
-        if (Configurations == null)
-        {
+        AppConfigurations = await Service.GetAppConfigurationsAsync(CancellationToken.None);
+        if (AppConfigurations == null)
             Logger.LogWarning("No configurations found, initializing with empty list.");
-            Configurations = Enumerable.Empty<AppConfiguration>().AsQueryable();
-        }
+
         await base.OnInitializedAsync();
     }
-
 }
