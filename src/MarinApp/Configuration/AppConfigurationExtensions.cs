@@ -139,10 +139,10 @@ namespace MarinApp.Configuration
             var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
             var connString = DbConnectionStringHelper.GetConnectionString();
             var serviceProvider = builder.Services.BuildServiceProvider();
-            var dataContext = serviceProvider.GetRequiredService<AppDataContext>();
+            var factory = serviceProvider.GetRequiredService<IDbContextFactory<AppDataContext>>();
 
             builder.Configuration.AddDbConfigurationProvider(
-                dataContext,
+                factory,
                 env);
             return builder;
         }

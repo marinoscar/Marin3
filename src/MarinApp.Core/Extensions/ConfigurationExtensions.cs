@@ -13,20 +13,17 @@ using System.Threading.Tasks;
 
 namespace MarinApp.Core.Extensions
 {
-    /// <summary>
-    /// Provides extension methods for <see cref="IConfigurationBuilder"/> to support
-    /// loading configuration values from a database using a custom configuration provider.
-    /// </summary>
+    
     public static class ConfigurationExtensions
     {
         
         public static IConfigurationBuilder AddDbConfigurationProvider(
             this IConfigurationBuilder builder,
-            AppDataContext dataContext,
+             IDbContextFactory<AppDataContext> factory,
             string environment)
         {
 
-            return builder.Add(new DbConfigurationSource(dataContext, environment));
+            return builder.Add(new DbConfigurationSource(factory, environment));
         }
 
 

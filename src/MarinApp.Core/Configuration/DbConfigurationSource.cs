@@ -11,18 +11,18 @@ namespace MarinApp.Core.Configuration
 {
     public class DbConfigurationSource : IConfigurationSource
     {
-        private readonly AppDataContext _dataContext;
+        private readonly IDbContextFactory<AppDataContext> _contextFactory;
         private readonly string _environment;
 
-        public DbConfigurationSource(AppDataContext dataContext, string environment)
+        public DbConfigurationSource(IDbContextFactory<AppDataContext> contextFactory, string environment)
         {
-            _dataContext = dataContext ?? throw new ArgumentNullException(nameof(dataContext));
+            _contextFactory = contextFactory ?? throw new ArgumentNullException(nameof(contextFactory));
             _environment = environment ?? throw new ArgumentNullException(nameof(environment));
         }
 
         public IConfigurationProvider Build(IConfigurationBuilder builder)
         {
-            return new DbConfigurationProvider(_dataContext, _environment);
+            return new DbConfigurationProvider(_contextFactory, _environment);
         }
     }
 }

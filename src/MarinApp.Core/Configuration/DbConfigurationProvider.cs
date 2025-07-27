@@ -17,14 +17,14 @@ namespace MarinApp.Core.Configuration
     /// </summary>
     public class DbConfigurationProvider : ConfigurationProvider
     {
-        
-        private readonly AppDataContext _dataContext;
+
+        private readonly IDbContextFactory<AppDataContext> _contextFactory;
         private readonly string _environment;
 
        
-        public DbConfigurationProvider(AppDataContext dataContext, string environment)
+        public DbConfigurationProvider(IDbContextFactory<AppDataContext> contextFactory, string environment)
         {
-            _dataContext = dataContext ?? throw new ArgumentNullException(nameof(dataContext));
+            _contextFactory = contextFactory ?? throw new ArgumentNullException(nameof(contextFactory));
             _environment = environment ?? throw new ArgumentNullException(nameof(environment));
         }
 
@@ -32,11 +32,12 @@ namespace MarinApp.Core.Configuration
         {
             
             // Ensure the configuration table exists; creates it if it does not (using EF migrations if available).
-            _dataContext.Database.EnsureCreated();
+            var context = _contextFactory.CreateDbContext();
+            context.Database.EnsureCreated();
 
             // Retrieve configuration entries: shared (Environment == null) and environment-specific.
             // Environment-specific entries override shared ones with the same key.
-            var configEntries = _dataContext.AppConfiguration
+            var configEntries = context.AppConfiguration
                 .Where(e => e.Environment == null || e.Environment == _environment)
                 .OrderBy(e => e.Environment == null ? 0 : 1) // Shared first, then environment-specific.
                 .ToList();

@@ -13,12 +13,14 @@ namespace MarinApp.Core.Services
     public class AppConfigurationService
     {
 
+        private readonly IDbContextFactory<AppDataContext> _contextFactory;
         private readonly AppDataContext _context;
         private readonly ILogger<AppConfigurationService> _logger;
 
-        public AppConfigurationService(AppDataContext appDataContext, ILogger<AppConfigurationService> logger)
+        public AppConfigurationService(IDbContextFactory<AppDataContext> contextFactory, ILogger<AppConfigurationService> logger)
         {
-            _context = appDataContext ?? throw new ArgumentNullException(nameof(appDataContext));
+            _contextFactory = contextFactory ?? throw new ArgumentNullException(nameof(contextFactory));
+            _context = _contextFactory.CreateDbContext();
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 

@@ -32,8 +32,9 @@ namespace MarinApp
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
 
-            // Add the database context
-            builder.Services.AddDbContext<AppDataContext>(options =>
+
+            // Add Context Factory
+            builder.Services.AddDbContextFactory<AppDataContext>(options =>
             {
                 options.UseNpgsql(DbConnectionStringHelper.GetConnectionString())
                 .LogTo(Console.WriteLine);
