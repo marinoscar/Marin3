@@ -32,11 +32,6 @@ namespace MarinApp.Core.Extensions
 
         public static IServiceCollection AddApplicationCoreServices(this IServiceCollection s)
         {
-            //add the database context
-            s.AddDbContext<AppDataContext>(options =>
-            {
-                options.UseNpgsql(DbConnectionStringHelper.GetConnectionString());
-            });
             s.AddScoped<AppConfigurationService>();
             return s;
         }
