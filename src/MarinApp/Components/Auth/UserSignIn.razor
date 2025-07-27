@@ -62,8 +62,9 @@
     {
         var info = string.Empty;
         if (DeviceInfo != null) info = DeviceInfo.ToBase64();
+        var returnUrl = HttpUtility.UrlEncode(ReturnUrl);
         info = HttpUtility.HtmlEncode(info);
-        Navigation.NavigateTo(string.Format("{0}?provider={1}&deviceInfo={2}&returnUrl={3}", NavigateTo, ProviderName, info, HttpUtility.HtmlEncode(ReturnUrl)));
+        Navigation.NavigateTo(string.Format("{0}?provider={1}&deviceInfo={2}", NavigateTo, ProviderName, info));
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
