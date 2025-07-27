@@ -79,19 +79,20 @@ namespace MarinApp.Core.Services
                 throw new ArgumentNullException(nameof(configuration));
             try
             {
-                var existingConfig = await _context.AppConfiguration
+                var context = _contextFactory.CreateDbContext();
+                var existingConfig = await context.AppConfiguration
                     .FirstOrDefaultAsync(c => c.Key == configuration.Key, cancellationToken);
                 if (existingConfig != null)
                 {
                     existingConfig.Value = configuration.Value;
                     existingConfig.Environment = configuration.Environment;
-                    _context.AppConfiguration.Update(existingConfig);
+                    context.AppConfiguration.Update(existingConfig);
                 }
                 else
                 {
-                    _context.AppConfiguration.Add(configuration);
+                    context.AppConfiguration.Add(configuration);
                 }
-                await _context.SaveChangesAsync(cancellationToken);
+                await context.SaveChangesAsync(cancellationToken);
                 return configuration;
             }
             catch (Exception ex)

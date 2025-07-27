@@ -43,6 +43,6 @@
 
     private async Task OnCommittedItemChanges(AppConfiguration item)
     {
-        await Service.AddOrUpdateAppConfigurationAsync(item, CancellationToken.None);
+       await Service.AddOrUpdateAppConfigurationAsync(item, CancellationToken.None);
     }
 }
