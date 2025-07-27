@@ -38,6 +38,9 @@ namespace MarinApp
                 .LogTo(Console.WriteLine);
             });
 
+            // Add the application OAuth Authentication
+            builder.Services.AddApplicationAuth();
+
 
             var app = builder.Build();
 
