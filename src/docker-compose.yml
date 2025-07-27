@@ -4,3 +4,15 @@ services:
     build:
       context: .
       dockerfile: MarinApp/Dockerfile
+    ports:
+      - "9095:9095"   # HTTP: container:host
+      - "9096:9096"   # HTTPS (if you’re using certificates)
+    environment:
+      # Postgres connection
+      DB_SERVER: ${DB_SERVER}
+      DB_PORT: 5432
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      ASPNETCORE_URLS: http://+:9095
+
+    restart: unless-stopped
