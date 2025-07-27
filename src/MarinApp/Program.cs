@@ -1,10 +1,13 @@
+using Luval.AuthMate.Web.Controllers;
 using MarinApp.Components;
 using MarinApp.Configuration;
 using MarinApp.Core.Configuration;
 using MarinApp.Core.Data;
 using MarinApp.Core.Extensions;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
+using System.Diagnostics;
 
 namespace MarinApp
 {
@@ -16,6 +19,10 @@ namespace MarinApp
 
             // Add the logging
             builder.AddApplicationLogging();
+
+            // If debbugging add the debug level to debug
+            if (Debugger.IsAttached)
+                builder.Logging.SetMinimumLevel(LogLevel.Debug);
 
             // Add MudBlazor services
             builder.Services.AddMudServices();
@@ -38,7 +45,10 @@ namespace MarinApp
             builder.Services.AddApplicationAuth();
 
             // Add controllers, HTTP client, and context accessor
-            builder.Services.AddControllers();
+            // Add controller library assembly after AddControllers()
+            builder.Services.AddControllers()
+                .PartManager.ApplicationParts.Add(new AssemblyPart(typeof(AuthController).Assembly));
+
             builder.Services.AddHttpClient();
             builder.Services.AddHttpContextAccessor();
 
@@ -52,10 +62,10 @@ namespace MarinApp
             }
 
             /*** AuthMate: Additional configuration  ****/
-            app.MapControllers();
             app.UseRouting();
             app.UseAuthorization();
             app.UseAuthentication();
+            app.MapControllers();
             /*** AuthMate:                           ****/
 
             app.UseAntiforgery();
@@ -63,6 +73,13 @@ namespace MarinApp
             app.MapStaticAssets();
             app.MapRazorComponents<App>()
                 .AddInteractiveServerRenderMode();
+
+
+            var endpointDataSource = app.Services.GetRequiredService<EndpointDataSource>();
+            foreach (var endpoint in endpointDataSource.Endpoints)
+            {
+                Console.WriteLine($"Mapped endpoint: {endpoint.DisplayName}");
+            }
 
             app.Run();
         }
