@@ -41,6 +41,11 @@ namespace MarinApp
             // Add the application OAuth Authentication
             builder.Services.AddApplicationAuth();
 
+            // Add controllers, HTTP client, and context accessor
+            builder.Services.AddControllers();
+            builder.Services.AddHttpClient();
+            builder.Services.AddHttpContextAccessor();
+
 
             var app = builder.Build();
 
