@@ -8,8 +8,9 @@
 @inject AppConfigurationService Service
 @inject ILogger<AppConfig> Logger
 
-<MudDataGrid Items="@AppConfigurations" ReadOnly="false"
-             EditMode="DataGridEditMode.Form">
+<MudDataGrid T="AppConfiguration" Items="@AppConfigurations" ReadOnly="false"
+             EditMode="DataGridEditMode.Form"
+             CommittedItemChanges="@OnCommittedItemChanges">
              
     <ToolBarContent>
         <MudText Typo="Typo.h3">Application Configuration</MudText>
@@ -38,5 +39,10 @@
             Logger.LogWarning("No configurations found, initializing with empty list.");
 
         await base.OnInitializedAsync();
+    }
+
+    private async Task OnCommittedItemChanges(AppConfiguration item)
+    {
+        await Service.AddOrUpdateAppConfigurationAsync(item, CancellationToken.None);
     }
 }
