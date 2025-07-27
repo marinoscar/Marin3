@@ -1,3 +1,4 @@
+using Luval.AuthMate.Infrastructure.Configuration;
 using Luval.AuthMate.Web.Controllers;
 using MarinApp.Components;
 using MarinApp.Configuration;
@@ -46,8 +47,7 @@ namespace MarinApp
 
             // Add controllers, HTTP client, and context accessor
             // Add controller library assembly after AddControllers()
-            builder.Services.AddControllers()
-                .PartManager.ApplicationParts.Add(new AssemblyPart(typeof(AuthController).Assembly));
+            builder.Services.AddControllers();
 
             builder.Services.AddHttpClient();
             builder.Services.AddHttpContextAccessor();
@@ -73,13 +73,6 @@ namespace MarinApp
             app.MapStaticAssets();
             app.MapRazorComponents<App>()
                 .AddInteractiveServerRenderMode();
-
-
-            var endpointDataSource = app.Services.GetRequiredService<EndpointDataSource>();
-            foreach (var endpoint in endpointDataSource.Endpoints)
-            {
-                Console.WriteLine($"Mapped endpoint: {endpoint.DisplayName}");
-            }
 
             app.Run();
         }
