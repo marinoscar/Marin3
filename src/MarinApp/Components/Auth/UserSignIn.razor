@@ -1,0 +1,16 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+
+<CascadingAuthenticationState>
+    <AuthorizeView>
+        <Authorized>
+            <MudButton Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Login" Color="Color.Primary">Sign Out</MudButton>
+        </Authorized>
+        <NotAuthorized>
+            <MudButton Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Logout" Color="Color.Default">Sign In</MudButton>
+        </NotAuthorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>
+
+@code {
+
+}
