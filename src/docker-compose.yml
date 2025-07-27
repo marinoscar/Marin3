@@ -1,0 +1,6 @@
+services:
+  marinapp:
+    image: ${DOCKER_REGISTRY-}marinapp
+    build:
+      context: .
+      dockerfile: MarinApp/Dockerfile
