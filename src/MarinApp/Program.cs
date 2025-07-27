@@ -1,4 +1,5 @@
 using MarinApp.Components;
+using MarinApp.Configuration;
 using MarinApp.Core.Configuration;
 using MarinApp.Core.Data;
 using MarinApp.Core.Extensions;
@@ -13,6 +14,9 @@ namespace MarinApp
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // Add the logging
+            builder.AddApplicationLogging();
+
             // Add MudBlazor services
             builder.Services.AddMudServices();
 
@@ -24,18 +28,16 @@ namespace MarinApp
             var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
             var connString = DbConnectionStringHelper.GetConnectionString();
             builder.Configuration.AddDbConfigurationProvider(
-                options => options.UseNpgsql(connString),
+                options => options.UseNpgsql(connString).LogTo(Console.WriteLine),
                 env);
 
             // Add the database context
             builder.Services.AddDbContext<AppDataContext>(options =>
             {
-                options.UseNpgsql(connString);
+                options.UseNpgsql(connString)
+                .LogTo(Console.WriteLine);
             });
 
-            // Add the logging
-            builder.Services.AddLogging();
-            builder.Logging.AddConsole();
 
             var app = builder.Build();
 
