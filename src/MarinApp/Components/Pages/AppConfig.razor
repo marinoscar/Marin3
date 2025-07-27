@@ -2,7 +2,7 @@
 @using MarinApp.Core.Services
 
 
-@attribute [Authorize]
+
 @page "/appconfig"
 
 @inject AppConfigurationService Service
@@ -41,8 +41,8 @@
         await base.OnInitializedAsync();
     }
 
-    private async Task OnCommittedItemChanges(AppConfiguration item)
+    private void OnCommittedItemChanges(AppConfiguration item)
     {
-        await Service.AddOrUpdateAppConfigurationAsync(item, CancellationToken.None);
+        Service.AddOrUpdate(item);
     }
 }

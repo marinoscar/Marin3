@@ -51,6 +51,26 @@ namespace MarinApp.Core.Services
             }
         }
 
+        public AppConfiguration AddOrUpdate(AppConfiguration configuration)
+        {
+            var itemInDb = _context.AppConfiguration.FirstOrDefault(i => i.Key == configuration.Key);
+            if(itemInDb != null)
+            {
+                itemInDb.Version = itemInDb.Version + 1;
+                itemInDb.UtcUpdatedAt = DateTime.UtcNow;
+                itemInDb.Value = configuration.Value;
+                itemInDb.Environment = configuration.Environment;
+                _context.Update(itemInDb);
+                configuration = itemInDb;
+            }
+            else
+            {
+                _context.Add(configuration);
+            }
+            _context.SaveChanges();
+            return configuration;
+        }
+
         public async Task<AppConfiguration> AddOrUpdateAppConfigurationAsync(AppConfiguration configuration, CancellationToken cancellationToken)
         {
             if (configuration == null)
