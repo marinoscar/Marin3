@@ -1,5 +1,6 @@
 ﻿using MarinApp.Core.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,12 +15,17 @@ namespace MarinApp.Core.Data
     /// </summary>
     public class AppDataContext : DbContext
     {
+
+        private readonly ILogger<AppDataContext>? _logger;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="AppDataContext"/> class using the specified options.
         /// </summary>
         /// <param name="options">The options to be used by the <see cref="DbContext"/>.</param>
-        public AppDataContext(DbContextOptions<AppDataContext> options)
-            : base(options) { }
+        public AppDataContext(DbContextOptions<AppDataContext> options, ILogger<AppDataContext>? logger = null)
+            : base(options) {
+            _logger = logger;
+        }
 
         /// <summary>
         /// Gets or sets the <see cref="DbSet{TEntity}"/> representing the application configuration settings.
@@ -38,6 +44,12 @@ namespace MarinApp.Core.Data
             {
                 // Additional configuration for AppConfiguration can be added here.
             });
+        }
+
+        public override void Dispose()
+        {
+            _logger?.LogInformation("Disposing AppDataContext.");
+            base.Dispose();
         }
     }
 }
