@@ -4,6 +4,7 @@ using Luval.AuthMate.Infrastructure.Data;
 using Luval.AuthMate.Infrastructure.Logging;
 using Luval.AuthMate.Postgres;
 using MarinApp.Core.Configuration;
+using MarinApp.Core.Data;
 using MarinApp.Core.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
@@ -137,8 +138,11 @@ namespace MarinApp.Configuration
             // Setup the configuration data source
             var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
             var connString = DbConnectionStringHelper.GetConnectionString();
+            var serviceProvider = builder.Services.BuildServiceProvider();
+            var dataContext = serviceProvider.GetRequiredService<AppDataContext>();
+
             builder.Configuration.AddDbConfigurationProvider(
-                options => options.UseNpgsql(connString).LogTo(Console.WriteLine),
+                dataContext,
                 env);
             return builder;
         }
