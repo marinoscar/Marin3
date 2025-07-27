@@ -1,7 +1,9 @@
 ﻿using MarinApp.Core.Configuration;
+using MarinApp.Core.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,6 +44,17 @@ namespace MarinApp.Core.Extensions
             string environment)
         {
             return builder.Add(new DbConfigurationSource(optionsAction, environment));
+        }
+
+
+        public static IServiceCollection AddApplicationCoreServices(this IServiceCollection s)
+        {
+            //add the database context
+            s.AddDbContext<AppDataContext>(options =>
+            {
+                options.UseNpgsql(DbConnectionStringHelper.GetConnectionString());
+            });
+            return s;
         }
     }
 }

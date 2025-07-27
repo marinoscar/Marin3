@@ -52,6 +52,8 @@ namespace MarinApp
             builder.Services.AddHttpClient();
             builder.Services.AddHttpContextAccessor();
 
+            //add the application core services
+            builder.Services.AddApplicationCoreServices();
 
             var app = builder.Build();
 
