@@ -1,4 +1,9 @@
-﻿using MarinApp.Core.Configuration;
+﻿using Luval.AuthMate.Core;
+using Luval.AuthMate.Infrastructure.Configuration;
+using Luval.AuthMate.Infrastructure.Data;
+using Luval.AuthMate.Infrastructure.Logging;
+using Luval.AuthMate.Postgres;
+using MarinApp.Core.Configuration;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Serilog;
 using Serilog.Events;
@@ -50,6 +55,79 @@ namespace MarinApp.Configuration
             });
 
             return builder;
+        }
+
+        /// <summary>
+        /// Adds and configures authentication services for the application, including AuthMate and Google OAuth.
+        /// 
+        /// This method performs the following steps:
+        /// <list type="number">
+        /// <item>Builds a temporary service provider to retrieve the application <see cref="IConfiguration"/> instance.</item>
+        /// <item>Retrieves the database connection string using <see cref="DbConnectionStringHelper.GetConnectionString"/>.</item>
+        /// <item>Creates a new <see cref="PostgresAuthMateContext"/> for AuthMate data storage.</item>
+        /// <item>Registers AuthMate services with the dependency injection container, providing the bearing token key and a factory for the PostgreSQL context.</item>
+        /// <item>Configures Google OAuth authentication using values from configuration:
+        /// <list type="bullet">
+        /// <item><c>OAuthProviders:Google:ClientId</c> (required)</item>
+        /// <item><c>OAuthProviders:Google:ClientSecret</c> (required)</item>
+        /// <item>Sets the login path to <c>/api/auth</c></item>
+        /// </list>
+        /// </item>
+        /// <item>Initializes the AuthMate database and seeds it with the owner email (from <c>OAuthProviders:Google:OwnerEmail</c> in configuration) and required initial records.</item>
+        /// <item>Logs a success message if configuration is successful, or logs and rethrows any exceptions encountered.</item>
+        /// </list>
+        /// </summary>
+        /// <param name="s">The <see cref="IServiceCollection"/> to add authentication services to.</param>
+        /// <returns>The same <see cref="IServiceCollection"/> instance for chaining.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if required configuration values are missing.</exception>
+        /// <exception cref="Exception">Rethrows any exception encountered during configuration.</exception>
+        public static IServiceCollection AddApplicationAuth(this IServiceCollection s)
+        {
+            try
+            {
+                var config = s.BuildServiceProvider().GetRequiredService<IConfiguration>();
+                var connString = DbConnectionStringHelper.GetConnectionString();
+                var dbContext = new PostgresAuthMateContext(connString);
+
+                // Add the database context for AuthMate
+                s.AddAuthMateServices(
+                    // The key to use for the bearing token implementation
+                    config["AuthMate:BearingTokenKey"] ?? "No_Token",
+                (s) =>
+                {
+                    // Returns the postgresql implementation
+                    return dbContext;
+                });
+
+                // Adds the Google Authentication
+                s.AddAuthMateAuthentication(new GoogleOAuthConfiguration()
+                {
+                    // Client ID from your config file
+                    ClientId = config["OAuthProviders:Google:ClientId"] ?? throw new ArgumentNullException("The Google client id is required"),
+                    // Client secret from your config file
+                    ClientSecret = config["OAuthProviders:Google:ClientSecret"] ?? throw new ArgumentNullException("The Google client secret is required"),
+                    // Set the login path in the controller and pass the provider name
+                    LoginPath = "/api/auth",
+                });
+
+                // Creates the context
+                var contextHelper = new AuthMateContextHelper(
+                        dbContext,
+                        new ColorConsoleLogger<AuthMateContextHelper>());
+
+                // Ensure the database is created and initialize it with the owner email and required initial records
+                contextHelper.InitializeDbAsync(config["OAuthProviders:Google:OwnerEmail"] ?? "")
+                    .GetAwaiter()
+                    .GetResult();
+
+                Log.Information("Application authentication services configured successfully.");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "An error occurred while configuring application authentication services.");
+                throw;
+            }
+            return s;
         }
     }
 }
