@@ -1,7 +1,36 @@
-﻿<h3>Application Configuration</h3>
+﻿@using MarinApp.Core.Entities
+@using MarinApp.Core.Services
 
 
+@attribute [Authorize]
+@page "/appconfig"
+
+@inject AppConfigurationService Service
+@inject ILogger<AppConfig> Logger
+
+<h3>Application Configuration</h3>
+
+<MudDataGrid Items="@Configurations">
+    <Columns>
+        <PropertyColumn Property="x => x.Key" Title="Nr" />
+        <PropertyColumn Property="x => x.Value" />
+        <PropertyColumn Property="x => x.Environment" />
+    </Columns>
+</MudDataGrid>
 
 @code {
+
+    public IQueryable<AppConfiguration> Configurations { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Configurations = await Service.GetAppConfigurationsAsync(CancellationToken.None);
+        if (Configurations == null)
+        {
+            Logger.LogWarning("No configurations found, initializing with empty list.");
+            Configurations = Enumerable.Empty<AppConfiguration>().AsQueryable();
+        }
+        await base.OnInitializedAsync();
+    }
 
 }

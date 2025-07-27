@@ -1,5 +1,6 @@
 ﻿using MarinApp.Core.Configuration;
 using MarinApp.Core.Data;
+using MarinApp.Core.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -54,6 +55,7 @@ namespace MarinApp.Core.Extensions
             {
                 options.UseNpgsql(DbConnectionStringHelper.GetConnectionString());
             });
+            s.AddScoped<AppConfigurationService>();
             return s;
         }
     }
