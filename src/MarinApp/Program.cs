@@ -24,17 +24,13 @@ namespace MarinApp
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
 
-            // Setup the configuration data source
-            var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
-            var connString = DbConnectionStringHelper.GetConnectionString();
-            builder.Configuration.AddDbConfigurationProvider(
-                options => options.UseNpgsql(connString).LogTo(Console.WriteLine),
-                env);
+            // Adds the configuration provider for the application
+            builder.AddAppConfigurationProvider();
 
             // Add the database context
             builder.Services.AddDbContext<AppDataContext>(options =>
             {
-                options.UseNpgsql(connString)
+                options.UseNpgsql(DbConnectionStringHelper.GetConnectionString())
                 .LogTo(Console.WriteLine);
             });
 
