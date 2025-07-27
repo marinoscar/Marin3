@@ -8,7 +8,7 @@
 @inject AppConfigurationService Service
 @inject ILogger<AppConfig> Logger
 
-<MudDataGrid Items="@AppConfigurations"
+<MudDataGrid Items="@AppConfigurations" ReadOnly="false"
              EditMode="DataGridEditMode.Form">
              
     <ToolBarContent>
