@@ -40,8 +40,12 @@ namespace MarinApp.Core.Data
         /// <param name="modelBuilder">The builder being used to construct the model for this context.</param>
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<AppConfiguration>(entity =>
+            modelBuilder.Entity<AppConfiguration>(e =>
             {
+                e.Property(c => c.Key)
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .Metadata
                 // Additional configuration for AppConfiguration can be added here.
             });
         }
