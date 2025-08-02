@@ -8,7 +8,7 @@
 @inject AppConfigurationService Service
 @inject ILogger<AppConfig> Logger
 
-<MudDataGrid T="AppConfiguration" Items="@AppConfigurations" ReadOnly="false"
+@* <MudDataGrid T="AppConfiguration" Items="@AppConfigurations" ReadOnly="false"
              EditMode="DataGridEditMode.Form"
              CommittedItemChanges="@OnCommittedItemChanges">
              
@@ -27,6 +27,11 @@
         </TemplateColumn>
     </Columns>
 </MudDataGrid>
+ *@
+
+ <MarinApp.Core.Components.DataGrid.DataGridEx T="AppConfiguration" Items="@AppConfigurations">
+
+ </MarinApp.Core.Components.DataGrid.DataGridEx>
 
 @code {
 

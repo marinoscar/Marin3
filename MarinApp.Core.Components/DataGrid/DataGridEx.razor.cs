@@ -13,9 +13,16 @@ using System.Threading.Tasks;
 
 namespace MarinApp.Core.Components.DataGrid
 {
-    public class DataGridEx<TEntity> : MudDataGrid<TEntity>
+    public partial class DataGridEx<TEntity> : MudDataGrid<TEntity>
     {
         private UIEntityMetadata? _metadata;
+        private RenderFragment _dataGridFragment;
+
+        protected override void OnInitialized()
+        {
+            base.OnInitialized();
+            _dataGridFragment = BuildDataGrid();
+        }
 
         public RenderFragment BuildDataGrid()
         {
@@ -46,7 +53,7 @@ namespace MarinApp.Core.Components.DataGrid
                             }
                             colBuilder.CloseComponent();
                         }));
-                        
+                        builder.CloseComponent();
                     };
             return value;
         }
