@@ -12,16 +12,16 @@ using System.Threading.Tasks;
 
 namespace MarinApp.Core.Data
 {
-    public class UIMetadataExtractor
+    public static class UIMetadataExtractor
     {
         private static readonly Dictionary<Type, UIEntityMetadata> _metadata = [];
 
-        public void InitializeDataContext<Context>() where Context : DbContext
+        public static void InitializeDataContext<Context>() where Context : DbContext
         {
             InitializeDataContext(typeof(Context));
         }
 
-        public void InitializeDataContext(Type contextType)
+        public static void InitializeDataContext(Type contextType)
         {
             if (!typeof(DbContext).IsAssignableFrom(contextType))
                 throw new ArgumentException($"Type '{contextType.FullName}' is not a DbContext or does not inherit from DbContext.", nameof(contextType));
@@ -42,73 +42,18 @@ namespace MarinApp.Core.Data
             }
         }
 
-        public UIEntityMetadata Get<T>()
+        public static UIEntityMetadata Get<T>()
         {
             return Get(typeof(T));
         }
 
-        public UIEntityMetadata Get(Type type)
+        public static UIEntityMetadata Get(Type type)
         {
             if (_metadata.ContainsKey(type)) return _metadata[type];
             _metadata[type] = Extract(type);
             return _metadata[type];
         }
 
-        private UIEntityMetadata Extract(Type type)
-        {
-            var prop = type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .Where(p => p.CanRead && p.CanWrite && !p.GetIndexParameters().Any())
-                .ToList();
-            var fielsds = prop.Select(ExtractField).ToList();
-
-            return new UIEntityMetadata
-            {
-                Name = type.Name,
-                DisplayName = GetDisplayName(type),
-                Description = GetDescription(type),
-                Fields = fielsds
-            };
-        }
-
-        private UIFieldMetadata ExtractField(PropertyInfo property)
-        {
-            var result = new UIFieldMetadata
-            {
-                Name = property.Name,
-                DisplayName = GetDisplayName(property),
-                Description = GetDescription(property),
-                IsForeignKey = property.GetCustomAttribute<ForeignKeyAttribute>() != null,
-                IsRequired = property.GetCustomAttribute<RequiredAttribute>() != null,
-                MaxLength = GetMaxLength(property)
-            };
-            return result;
-        }
-
-        private string GetDisplayName(MemberInfo m)
-        {
-            return Convert.ToString(GetAttributeValue<DisplayAttribute>(m, a => a.Name)) ?? m.Name;
-        }
-
-        private string? GetDescription(MemberInfo m)
-        {
-            return Convert.ToString(GetAttributeValue<DisplayAttribute>(m, a => a.Description));
-        }
-
-        private int GetMaxLength(MemberInfo m)
-        {
-            return Convert.ToInt32(GetAttributeValue<MaxLengthAttribute>(m, a => a.Length) ?? 0);
-        }
-
-        private object? GetAttributeValue<T>(MemberInfo m, Func<T, object> valueSelector) where T : Attribute
-        {
-            var attribute = m.GetCustomAttribute<T>();
-            return attribute != null ? valueSelector(attribute) : string.Empty;
-        }
-
-    }
-
-    public static class UIMetadataExtractorExtensions
-    {
         /// <summary>
         /// Scans the registered <see cref="DbContext"/> and <see cref="IDbContextFactory{TContext}"/> services in the <see cref="IServiceCollection"/>,
         /// extracts UI metadata for all discovered data context types, and initializes the metadata extractor for each.
@@ -121,8 +66,6 @@ namespace MarinApp.Core.Data
         {
             if (s == null)
                 throw new ArgumentNullException(nameof(s), "The service collection cannot be null.");
-
-            var metadataExtractor = new UIMetadataExtractor();
 
             var dbContextTypes = s
                 .Where(sd =>
@@ -145,7 +88,7 @@ namespace MarinApp.Core.Data
             {
                 try
                 {
-                    metadataExtractor.InitializeDataContext(type);
+                    InitializeDataContext(type);
                 }
                 catch (Exception ex)
                 {
@@ -155,5 +98,57 @@ namespace MarinApp.Core.Data
 
             return s;
         }
+
+        private static UIEntityMetadata Extract(Type type)
+        {
+            var prop = type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(p => p.CanRead && p.CanWrite && !p.GetIndexParameters().Any())
+                .ToList();
+            var fielsds = prop.Select(ExtractField).ToList();
+
+            return new UIEntityMetadata
+            {
+                Name = type.Name,
+                DisplayName = GetDisplayName(type),
+                Description = GetDescription(type),
+                Fields = fielsds
+            };
+        }
+
+        private static UIFieldMetadata ExtractField(PropertyInfo property)
+        {
+            var result = new UIFieldMetadata
+            {
+                Name = property.Name,
+                DisplayName = GetDisplayName(property),
+                Description = GetDescription(property),
+                IsForeignKey = property.GetCustomAttribute<ForeignKeyAttribute>() != null,
+                IsRequired = property.GetCustomAttribute<RequiredAttribute>() != null,
+                MaxLength = GetMaxLength(property)
+            };
+            return result;
+        }
+
+        private static string GetDisplayName(MemberInfo m)
+        {
+            return Convert.ToString(GetAttributeValue<DisplayAttribute>(m, a => a.Name)) ?? m.Name;
+        }
+
+        private static string? GetDescription(MemberInfo m)
+        {
+            return Convert.ToString(GetAttributeValue<DisplayAttribute>(m, a => a.Description));
+        }
+
+        private static int GetMaxLength(MemberInfo m)
+        {
+            return Convert.ToInt32(GetAttributeValue<MaxLengthAttribute>(m, a => a.Length) ?? 0);
+        }
+
+        private static object? GetAttributeValue<T>(MemberInfo m, Func<T, object> valueSelector) where T : Attribute
+        {
+            var attribute = m.GetCustomAttribute<T>();
+            return attribute != null ? valueSelector(attribute) : string.Empty;
+        }
+
     }
 }

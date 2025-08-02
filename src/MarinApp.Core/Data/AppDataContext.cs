@@ -44,8 +44,7 @@ namespace MarinApp.Core.Data
             {
                 e.Property(c => c.Key)
                     .IsRequired()
-                    .HasMaxLength(100)
-                    .Metadata
+                    .HasMaxLength(100);
                 // Additional configuration for AppConfiguration can be added here.
             });
         }
