@@ -131,23 +131,35 @@ namespace MarinApp.Core.Data
 
         private static string GetDisplayName(MemberInfo m)
         {
-            return Convert.ToString(GetAttributeValue<DisplayAttribute>(m, a => a.Name)) ?? m.Name;
+            return GetAttributeValue<DisplayAttribute, string>(m, a => a.Name, m.Name);
         }
 
         private static string? GetDescription(MemberInfo m)
         {
-            return Convert.ToString(GetAttributeValue<DisplayAttribute>(m, a => a.Description));
+            return GetAttributeValue<DisplayAttribute, string>(m, a => a.Description, string.Empty);
         }
 
         private static int GetMaxLength(MemberInfo m)
         {
-            return Convert.ToInt32(GetAttributeValue<MaxLengthAttribute>(m, a => a.Length) ?? 0);
+            return GetAttributeValue<MaxLengthAttribute, int>(m, a => a.Length, 0);
         }
 
-        private static object? GetAttributeValue<T>(MemberInfo m, Func<T, object> valueSelector) where T : Attribute
+        private static TResult? GetAttributeValue<TAttribute, TResult>(MemberInfo m, Func<TAttribute, object> valueSelector, TResult defaultValue = default) where TAttribute : Attribute
         {
-            var attribute = m.GetCustomAttribute<T>();
-            return attribute != null ? valueSelector(attribute) : default(T);
+            var attribute = m.GetCustomAttribute<TAttribute>();
+            var result = valueSelector(attribute);
+            if(result == null) return defaultValue;
+
+            try
+            {
+                return (TResult)Convert.ChangeType(result, typeof(TResult));
+            }
+            catch
+            {
+                Console.WriteLine($"Error extracting attribute value from {m.Name} for {typeof(TAttribute).Name}");
+            }
+            return defaultValue;
+
         }
 
     }
