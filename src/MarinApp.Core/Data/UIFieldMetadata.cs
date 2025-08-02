@@ -18,5 +18,7 @@ namespace MarinApp.Core.Data
         public bool IsRequired { get; set; } = false;
         public int MaxLength { get; set; } = 0;
 
+        public Type FieldType { get; set; } = typeof(object);
+
     }
 }

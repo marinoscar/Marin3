@@ -124,7 +124,8 @@ namespace MarinApp.Core.Data
                 Description = GetDescription(property),
                 IsForeignKey = property.GetCustomAttribute<ForeignKeyAttribute>() != null,
                 IsRequired = property.GetCustomAttribute<RequiredAttribute>() != null,
-                MaxLength = GetMaxLength(property)
+                MaxLength = GetMaxLength(property),
+                FieldType = property.PropertyType
             };
             return result;
         }
