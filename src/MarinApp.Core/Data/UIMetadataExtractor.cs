@@ -147,7 +147,7 @@ namespace MarinApp.Core.Data
         private static object? GetAttributeValue<T>(MemberInfo m, Func<T, object> valueSelector) where T : Attribute
         {
             var attribute = m.GetCustomAttribute<T>();
-            return attribute != null ? valueSelector(attribute) : string.Empty;
+            return attribute != null ? valueSelector(attribute) : default(T);
         }
 
     }
