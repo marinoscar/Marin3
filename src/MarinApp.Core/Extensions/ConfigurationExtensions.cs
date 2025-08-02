@@ -30,6 +30,9 @@ namespace MarinApp.Core.Extensions
         public static IServiceCollection AddApplicationCoreServices(this IServiceCollection s)
         {
             s.AddScoped<AppConfigurationService>();
+
+            //this to be the last call, it will load all of the metadata for all data context types
+            s.LoadUIMetadataForAllDataContext();
             return s;
         }
     }
