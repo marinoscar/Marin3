@@ -147,6 +147,9 @@ namespace MarinApp.Core.Data
         private static TResult? GetAttributeValue<TAttribute, TResult>(MemberInfo m, Func<TAttribute, object> valueSelector, TResult defaultValue = default) where TAttribute : Attribute
         {
             var attribute = m.GetCustomAttribute<TAttribute>();
+            
+            if (attribute == null) return defaultValue;
+
             var result = valueSelector(attribute);
             if(result == null) return defaultValue;
 
