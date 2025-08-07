@@ -14,6 +14,7 @@ namespace MarinApp.Core.Data
         public string Name { get; set; } = string.Empty;
         public string DisplayName { get; set; } = string.Empty;
         public string? Description { get; set; }
+        public bool IsPrimaryKey { get; set; } = false;
         public bool IsForeignKey { get; set; } = false;
         public bool IsRequired { get; set; } = false;
         public int MaxLength { get; set; } = 0;

@@ -1,23 +1,23 @@
-﻿@using MarinApp.Core.Entities
+﻿@using Microsoft.EntityFrameworkCore
+@using MarinApp.Core.Data
+@using MarinApp.Core.Entities
 @using MarinApp.Core.Services
-
-
 
 @page "/appconfig"
 
-@inject AppConfigurationService Service
+@inject IDbContextFactory<AppDataContext> ContextFactory
 @inject ILogger<AppConfig> Logger
 
-<MudDataGrid T="AppConfiguration" Items="@AppConfigurations" ReadOnly="false"
-             EditMode="DataGridEditMode.Form"
-             CommittedItemChanges="@OnCommittedItemChanges">
+<MudDataGrid T="AppConfiguration" 
+             Items="@AppConfigurations" 
+             ReadOnly="false">
              
     <ToolBarContent>
         <MudText Typo="Typo.h3">Application Configuration</MudText>
         <MudSpacer />
     </ToolBarContent>
     <Columns>
-        <PropertyColumn Property="x => x.Key" Sortable="true" Filterable="true" />
+        <PropertyColumn Property="x => x.Key" Title="Key" Sortable="true" Filterable="true" />
         <PropertyColumn Property="x => x.Value" Sortable="true" Filterable="true" />
         <PropertyColumn Property="x => x.Environment" Sortable="true" Filterable="true" />
         <TemplateColumn CellClass="d-flex justify-end">
@@ -31,19 +31,20 @@
 
 @code {
 
-    public IQueryable<AppConfiguration> AppConfigurations { get; set; } = Enumerable.Empty<AppConfiguration>().AsQueryable();
+
+    private AppDataContext Context => ContextFactory.CreateDbContext();
+    public IEnumerable<AppConfiguration> AppConfigurations { get; set; } = Enumerable.Empty<AppConfiguration>().AsQueryable();
+
 
     protected override async Task OnInitializedAsync()
     {
-        AppConfigurations = await Service.GetAppConfigurationsAsync(CancellationToken.None);
+        AppConfigurations = await Context.AppConfiguration
+            .AsNoTracking()
+            .ToListAsync(CancellationToken.None);
+
         if (AppConfigurations == null)
-            Logger.LogWarning("No configurations found, initializing with empty list.");
+            Logger.LogWarning("No data found, initializing with empty list.");
 
         await base.OnInitializedAsync();
-    }
-
-    private async Task OnCommittedItemChanges(AppConfiguration item)
-    {
-       await Service.AddOrUpdateAppConfigurationAsync(item, CancellationToken.None);
     }
 }
