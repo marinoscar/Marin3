@@ -18,8 +18,8 @@
     </ToolBarContent>
     <Columns>
         <PropertyColumn Property="x => x.Key" Title="Key" Sortable="true" Filterable="true" />
-        <PropertyColumn Property="x => x.Value" Sortable="true" Filterable="true" />
-        <PropertyColumn Property="x => x.Environment" Sortable="true" Filterable="true" />
+        <PropertyColumn Property="x => x.Value" Title="Value" Sortable="true" Filterable="true" />
+        <PropertyColumn Property="x => x.Environment" Title="Environment" Sortable="true" Filterable="true" />
         <TemplateColumn CellClass="d-flex justify-end">
             <CellTemplate>
                 <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="@context.Actions.StartEditingItemAsync" />
