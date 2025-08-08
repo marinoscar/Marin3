@@ -11,6 +11,11 @@ namespace MarinApp.Core.Entities
     /// <summary>
     /// Represents an application configuration setting, including its key, value, and optional environment.
     /// </summary>
+    /// <remarks>
+    /// Provides an implementation of the base class <see cref="BaseEntity"/> with properties for managing configuration settings.
+    /// The property <see cref="Key"/> is indexed to ensure uniqueness across configuration settings.
+    /// </remarks>
+    [Index(nameof(Key), Name = "IX_Unique_" + nameof(Key), IsUnique = true)]
     [Display(Name = "Application Configuration", Description = "Represents a configuration setting for the application with an associated key, value, and optional environment.")]
     public class AppConfiguration : BaseEntity
     {

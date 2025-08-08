@@ -42,7 +42,7 @@ namespace MarinApp.Core.Data
         {
             modelBuilder.Entity<AppConfiguration>(e =>
             {
-                e.Property(c => c.Key)
+                e.Property(c => c.Id)
                     .IsRequired()
                     .HasMaxLength(100);
                 // Additional configuration for AppConfiguration can be added here.

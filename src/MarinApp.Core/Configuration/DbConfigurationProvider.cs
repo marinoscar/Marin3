@@ -46,7 +46,7 @@ namespace MarinApp.Core.Configuration
             foreach (var entry in configEntries)
             {
                 // Environment-specific entries will overwrite shared ones with the same key.
-                data[entry.Key] = entry.Value ?? string.Empty;
+                data[entry.Id] = entry.Value ?? string.Empty;
             }
 
             Data = data;
