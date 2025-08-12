@@ -7,36 +7,4 @@
 @inject ILogger<AppConfig> Logger
 @inject NavigationManager Navigation
 
-<MudDataGrid T="AppConfiguration" Items="@AppConfigurations" ReadOnly="false">
-    <ToolBarContent>
-        <MudText Typo="Typo.h3">Application Configuration</MudText>
-        <MudSpacer />
-        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="AddNew">Add New</MudButton>
-    </ToolBarContent>
-    <Columns>
-        <PropertyColumn Property="x => x.Key" Title="Configuration Key" Sortable="true" Filterable="true" />
-        <PropertyColumn Property="x => x.Value" Title="Configuration Value" Sortable="true" Filterable="true" />
-        <PropertyColumn Property="x => x.Environment" Title="Environment" Sortable="true" Filterable="true" />
-        <TemplateColumn Title="Actions">
-            <CellTemplate>
-                <MudButton Size="Size.Small" Color="Color.Primary" OnClick="@(() => EditConfig(context.Id))">Edit</MudButton>
-            </CellTemplate>
-        </TemplateColumn>
-    </Columns>
-</MudDataGrid>
 
-@code {
-    private AppDataContext Context => ContextFactory.CreateDbContext();
-    public IEnumerable<AppConfiguration> AppConfigurations { get; set; } = Enumerable.Empty<AppConfiguration>();
-
-    protected override async Task OnInitializedAsync()
-    {
-        AppConfigurations = await Context.AppConfiguration.AsNoTracking().ToListAsync(CancellationToken.None);
-        if (AppConfigurations == null)
-            Logger.LogWarning("No data found, initializing with empty list.");
-    }
-
-    private void AddNew() => Navigation.NavigateTo("/appconfig/form");
-
-    private void EditConfig(string id) => Navigation.NavigateTo($"/appconfig/form/{id}");
-}
