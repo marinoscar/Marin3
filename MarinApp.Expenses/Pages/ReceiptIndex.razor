@@ -1,24 +1,57 @@
-﻿@using MarinApp.Expenses.Entities
+﻿<!--
+    ReceiptIndex.razor
+    -------------------
+    This Blazor page displays a list of expense receipts using MudBlazor's MudDataGrid.
+    Users can view, add, edit, and delete receipts. The page interacts with the ExpenseService
+    to retrieve and manage receipt data. Actions are logged using ILogger.
+    NavigationManager is used for page navigation, and IDialogService is used for confirmation dialogs.
+
+    Key Features:
+    - Displays all receipts in a sortable, filterable grid.
+    - Allows adding new receipts.
+    - Allows editing existing receipts.
+    - Allows deleting receipts with confirmation.
+    - Refreshes the list after deletion.
+    - Uses dependency injection for services.
+-->
+
+@using MarinApp.Expenses.Entities
 @using Microsoft.Extensions.Logging
 @using MudBlazor
 
 @page "/receipts"
 
-<h3>List of Expenses</h3>
-
 <MudDataGrid T="Receipt" Items="@Expenses" ReadOnly="false">
     <ToolBarContent>
-        <MudText Typo="Typo.h3">Expenses</MudText>
+        <MudText Typo="Typo.h3">List of Expenses</MudText>
         <MudSpacer />
         <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="AddReceipt">Add New</MudButton>
     </ToolBarContent>
     <Columns>
+        <!--
+            PropertyColumn: Displays the Vendor (description) of the receipt.
+            - Sortable and filterable.
+        -->
         <PropertyColumn Property="x => x.Vendor" Title="Description" Sortable="true" Filterable="true" />
+        <!--
+            PropertyColumn: Displays the Date of the receipt.
+            - Sortable and filterable.
+        -->
         <PropertyColumn Property="x => x.Date" Title="Date" Sortable="true" Filterable="true" />
+        <!--
+            PropertyColumn: Displays the TotalAmount of the receipt.
+            - Formatted to 2 decimal places.
+            - Sortable and filterable.
+        -->
         <PropertyColumn Property="x => x.TotalAmount" Title="Amount" Format="N2" Sortable="true" Filterable="true" />
+        <!--
+            TemplateColumn: Displays action buttons for editing and deleting receipts.
+        -->
         <TemplateColumn Title="Actions">
             <CellTemplate>
+                <!-- Edit button: Navigates to the edit page for the selected receipt. -->
                 <MudButton Size="Size.Small" StartIcon="@Icons.Material.Filled.Edit" Color="Color.Primary" OnClick="@(() => EditReceipt(context.Item.Id))"></MudButton>
+                <!-- Delete button: Opens a confirmation dialog and deletes the selected receipt. -->
                 <MudButton Size="Size.Small" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => DeleteReceiptAsync(context.Item.Id))"></MudButton>
             </CellTemplate>
         </TemplateColumn>
@@ -30,20 +63,39 @@
 
 @code {
 
+    /// <summary>
+    /// Injected service for managing expense receipts.
+    /// </summary>
     [Inject]
     protected ExpenseService ExpenseService { get; set; } = default!;
+
+    /// <summary>
+    /// Injected logger for logging information and warnings.
+    /// </summary>
     [Inject]
     protected ILogger<ReceiptIndex> Logger { get; set; } = default!;
+
+    /// <summary>
+    /// Injected navigation manager for page navigation.
+    /// </summary>
     [Inject]
     protected NavigationManager NavigationManager { get; set; } = default!;
+
+    /// <summary>
+    /// Injected dialog service for showing confirmation dialogs.
+    /// </summary>
     [Inject]
     protected IDialogService DialogService { get; set; } = default!;
 
-
-
-
+    /// <summary>
+    /// Collection of receipts to display in the grid.
+    /// </summary>
     public IEnumerable<Receipt> Expenses { get; set; } = Enumerable.Empty<Receipt>();
 
+    /// <summary>
+    /// Loads all receipts when the page is initialized.
+    /// Logs a warning if no receipts are found.
+    /// </summary>
     protected override async Task OnInitializedAsync()
     {
         Expenses = await ExpenseService.GetAllReceipts();
@@ -53,19 +105,30 @@
         }
     }
 
+    /// <summary>
+    /// Navigates to the page for adding a new receipt.
+    /// </summary>
     private void AddReceipt()
     {
         NavigationManager.NavigateTo("/receipts/add", true);
     }
 
+    /// <summary>
+    /// Navigates to the page for editing the specified receipt.
+    /// </summary>
+    /// <param name="id">The ID of the receipt to edit.</param>
     private void EditReceipt(string id)
     {
         NavigationManager.NavigateTo($"/receipts/edit/{id}", true);
     }
 
+    /// <summary>
+    /// Shows a confirmation dialog and deletes the specified receipt if confirmed.
+    /// Refreshes the list after deletion.
+    /// </summary>
+    /// <param name="id">The ID of the receipt to delete.</param>
     private async Task DeleteReceiptAsync(string id)
     {
-
         bool? result = await DialogService.ShowMessageBox(
             "Warning",
             "Are you sure you want to delete the record?",
@@ -75,14 +138,12 @@
 
         if(result != null && result.Value)
         {
-            // Implement deletion logic here
+            // Delete the receipt using the service.
             Logger.LogInformation($"Delete receipt with ID: {id}");
             await ExpenseService.DeleteReceipt(id);
         }
 
-        // After deletion, you might want to refresh the list
+        // Refresh the page to update the list.
         NavigationManager.NavigateTo("/receipts", true);
     }
-
-
 }
