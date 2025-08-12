@@ -1,4 +1,5 @@
-﻿using MarinApp.Expenses.Data;
+﻿using MarinApp.Core.Configuration;
+using MarinApp.Expenses.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -20,6 +21,15 @@ namespace MarinApp.Expenses
             });
             // Register the ExpenseService
             services.AddScoped<ExpenseService>();
+            services.AddSingleton(new AppDataContext()
+            {
+                AppId = "expenses",
+                AppName = "MarinApp Expenses",
+                AppVersion = "1.0.0",
+                Environment = "Development",
+                Description = "Expense management module for MarinApp."
+            });
+
             return services;
         }
     }

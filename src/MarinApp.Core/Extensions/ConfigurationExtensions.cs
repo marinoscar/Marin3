@@ -19,7 +19,7 @@ namespace MarinApp.Core.Extensions
         
         public static IConfigurationBuilder AddDbConfigurationProvider(
             this IConfigurationBuilder builder,
-             IDbContextFactory<AppDataContext> factory,
+             IDbContextFactory<Data.AppDataContext> factory,
             string environment)
         {
 

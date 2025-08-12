@@ -32,7 +32,7 @@ namespace MarinApp
 
 
             // Add Context Factory
-            builder.Services.AddDbContextFactory<AppDataContext>(options =>
+            builder.Services.AddDbContextFactory<Core.Data.AppDataContext>(options =>
             {
                 options.UseNpgsql(DbConnectionStringHelper.GetConnectionString())
                 .LogTo(Console.WriteLine);

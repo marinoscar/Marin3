@@ -15,7 +15,7 @@ namespace MarinApp.Core.Configuration
     /// identification, versioning, environment, and descriptive information. It can be injected
     /// or accessed throughout the application to provide context-aware behavior.
     /// </remarks>
-    public class AppContext
+    public class AppDataContext
     {
         /// <summary>
         /// Gets or sets the unique identifier for the application instance.
