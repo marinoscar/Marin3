@@ -18,7 +18,7 @@
         <PropertyColumn Property="x => x.TotalAmount" Title="Amount" Sortable="true" Filterable="true" />
         <TemplateColumn Title="Actions">
             <CellTemplate>
-                <MudButton Size="Size.Small" Color="Color.Primary" OnClick="@(() => ExpenseService.EditExpense(context.Id))">Edit</MudButton>
+                <MudButton Size="Size.Small" Color="Color.Primary" OnClick="@(() => EditReceipt(context.Item.Id))">Edit</MudButton>
             </CellTemplate>
         </TemplateColumn>
     </Columns>
@@ -47,9 +47,15 @@
         }
     }
 
-    protected void AddNewReceipt()
+    private void AddReceipt()
     {
-        //navigate to the form for adding a new receipt
+        NavigationManager.NavigateTo("/receipts/add", true);
     }
+
+    private void EditReceipt(string id)
+    {
+        NavigationManager.NavigateTo($"/receipts/edit/{id}", true);
+    }
+
 
 }
