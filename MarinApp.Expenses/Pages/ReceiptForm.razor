@@ -1,6 +1,4 @@
-﻿
-
-@using MarinApp.Expenses.Entities
+﻿@using MarinApp.Expenses.Entities
 @using Microsoft.Extensions.Logging
 @using MudBlazor
 
@@ -36,42 +34,89 @@
     </MudForm>
 </MudPaper>
 
-
 @code {
 
     /// <summary>
     /// Injected service for managing expense receipts.
+    /// Provides methods for adding, updating, deleting, and retrieving receipts.
     /// </summary>
     [Inject]
     protected ExpenseService ExpenseService { get; set; } = default!;
 
     /// <summary>
     /// Injected logger for logging information and warnings.
+    /// Used to record events and errors during receipt operations.
     /// </summary>
     [Inject]
     protected ILogger<ReceiptIndex> Logger { get; set; } = default!;
 
     /// <summary>
     /// Injected navigation manager for page navigation.
+    /// Used to redirect users after form actions.
     /// </summary>
     [Inject]
     protected NavigationManager NavigationManager { get; set; } = default!;
 
     /// <summary>
     /// Injected dialog service for showing confirmation dialogs.
+    /// Can be used for user confirmations or alerts.
     /// </summary>
     [Inject]
     protected IDialogService DialogService { get; set; } = default!;
 
+    /// <summary>
+    /// The receipt entity being created or edited.
+    /// Bound to the form fields for user input.
+    /// </summary>
     public Receipt Receipt { get; set; } = new Receipt();
 
+    /// <summary>
+    /// The ID parameter from the route, used to load an existing receipt for editing.
+    /// </summary>
+    [Parameter]
+    public string? Id { get; set; }
 
-
-
-
-
+    /// <summary>
+    /// Reference to the MudBlazor form component.
+    /// Used for validation and form state management.
+    /// </summary>
     private MudForm form;
 
+    /// <summary>
+    /// Loads the receipt for editing if an ID is provided, otherwise prepares for creation.
+    /// Navigates away if the ID is invalid or loading fails.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrWhiteSpace(Id))
+        {
+            try
+            {
+                var loadedReceipt = await ExpenseService.GetReceiptById(Id);
+                if (loadedReceipt != null)
+                {
+                    Receipt = loadedReceipt;
+                }
+                else
+                {
+                    await InvalidId();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error loading receipt with id {Id}", Id);
+                NavigationManager.NavigateTo("/receipts");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Handles the form submission event.
+    /// Validates the form, then adds or updates the receipt using <see cref="ExpenseService"/>.
+    /// Navigates to the receipts list page upon success.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task OnSubmit()
     {
         await form.Validate();
@@ -82,10 +127,30 @@
         }
     }
 
-    private async Task OnCancel()
+    /// <summary>
+    /// Handles the cancel button click event.
+    /// Navigates back to the receipts list page without saving changes.
+    /// </summary>
+    private void OnCancel()
     {
         NavigationManager.NavigateTo("/receipts");
     }
 
+    /// <summary>
+    /// Handles the scenario when an invalid receipt ID is provided.
+    /// Shows a warning dialog and navigates back to the receipts list.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    private async Task InvalidId()
+    {
+        Logger.LogWarning("Invalid receipt ID: {Id}", Id);
+        bool? result = await DialogService.ShowMessageBox(
+           "Warning",
+           $"Invalid Id: {Id}",
+           yesText: "Ok");
+
+        StateHasChanged();
+        NavigationManager.NavigateTo("/receipts");
+    }
 
 }
