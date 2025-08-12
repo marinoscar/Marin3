@@ -5,6 +5,7 @@ using MarinApp.Configuration;
 using MarinApp.Core.Configuration;
 using MarinApp.Core.Data;
 using MarinApp.Core.Extensions;
+using MarinApp.Expenses;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
@@ -40,6 +41,9 @@ namespace MarinApp
                 .LogTo(Console.WriteLine);
             });
 
+            //add the application core services
+            builder.Services.AddApplicationCoreServices();
+
             // Adds the configuration provider for the application
             builder.AddAppConfigurationProvider();
 
@@ -53,8 +57,9 @@ namespace MarinApp
             builder.Services.AddHttpClient();
             builder.Services.AddHttpContextAccessor();
 
-            //add the application core services
-            builder.Services.AddApplicationCoreServices();
+
+            // Add the expenses app
+            builder.Services.AddExpensesApp(DbConnectionStringHelper.GetConnectionString());
 
             var app = builder.Build();
 
