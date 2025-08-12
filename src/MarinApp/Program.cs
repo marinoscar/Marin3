@@ -1,12 +1,9 @@
-using Luval.AuthMate.Infrastructure.Configuration;
-using Luval.AuthMate.Web.Controllers;
 using MarinApp.Components;
 using MarinApp.Configuration;
 using MarinApp.Core.Configuration;
 using MarinApp.Core.Data;
 using MarinApp.Core.Extensions;
 using MarinApp.Expenses;
-using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
 using System.Diagnostics;
