@@ -1,0 +1,55 @@
+﻿@using MarinApp.Expenses.Entities
+@using Microsoft.Extensions.Logging
+@using MudBlazor
+
+@page "/receipts"
+
+<h3>List of Expenses</h3>
+
+<MudDataGrid T="Receipt" Items="@Expenses" ReadOnly="false">
+    <ToolBarContent>
+        <MudText Typo="Typo.h3">Expenses</MudText>
+        <MudSpacer />
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="ExpenseService.AddNew">Add New</MudButton>
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.Vendor" Title="Description" Sortable="true" Filterable="true" />
+        <PropertyColumn Property="x => x.Date" Title="Date" Sortable="true" Filterable="true" />
+        <PropertyColumn Property="x => x.TotalAmount" Title="Amount" Sortable="true" Filterable="true" />
+        <TemplateColumn Title="Actions">
+            <CellTemplate>
+                <MudButton Size="Size.Small" Color="Color.Primary" OnClick="@(() => ExpenseService.EditExpense(context.Id))">Edit</MudButton>
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+</MudDataGrid>
+
+@code {
+
+    [Inject]
+    public ExpenseService ExpenseService { get; set; } = default!;
+    [Inject]
+    public ILogger<ReceiptIndex> Logger { get; set; } = default!;
+    [Inject]
+    public NavigationManager NavigationManager { get; set; } = default!;
+
+
+
+
+    public IEnumerable<Receipt> Expenses { get; set; } = Enumerable.Empty<Receipt>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Expenses = await ExpenseService.GetAllReceipts();
+        if (Expenses == null || !Expenses.Any())
+        {
+            Logger.LogWarning("No expenses found, initializing with empty list.");
+        }
+    }
+
+    protected void AddNewReceipt()
+    {
+        //navigate to the form for adding a new receipt
+    }
+
+}
