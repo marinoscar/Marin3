@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\MarinApp.Core.Components\MarinApp.Core.Components.csproj" />
+    <ProjectReference Include="..\..\MarinApp.Expenses\MarinApp.Expenses.csproj" />
     <ProjectReference Include="..\MarinApp.Core\MarinApp.Core.csproj" />
   </ItemGroup>
 </Project>
