@@ -11,7 +11,7 @@ namespace MarinApp.Expenses
         /// </summary>
         /// <param name="services">The service collection to add the services to.</param>
         /// <returns>The updated service collection.</returns>
-        public static IServiceCollection AddMarinAppExpenses(this IServiceCollection services, string connectionString)
+        public static IServiceCollection AddExpensesApp(this IServiceCollection services, string connectionString)
         {
             // Register the DbContext factory for ExpenseDbContext
             services.AddDbContextFactory<ExpenseDbContext>(options =>
