@@ -10,28 +10,34 @@
     <ToolBarContent>
         <MudText Typo="Typo.h3">Expenses</MudText>
         <MudSpacer />
-        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="ExpenseService.AddNew">Add New</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="AddReceipt">Add New</MudButton>
     </ToolBarContent>
     <Columns>
         <PropertyColumn Property="x => x.Vendor" Title="Description" Sortable="true" Filterable="true" />
         <PropertyColumn Property="x => x.Date" Title="Date" Sortable="true" Filterable="true" />
-        <PropertyColumn Property="x => x.TotalAmount" Title="Amount" Sortable="true" Filterable="true" />
+        <PropertyColumn Property="x => x.TotalAmount" Title="Amount" Format="N2" Sortable="true" Filterable="true" />
         <TemplateColumn Title="Actions">
             <CellTemplate>
-                <MudButton Size="Size.Small" Color="Color.Primary" OnClick="@(() => EditReceipt(context.Item.Id))">Edit</MudButton>
+                <MudButton Size="Size.Small" StartIcon="@Icons.Material.Filled.Edit" Color="Color.Primary" OnClick="@(() => EditReceipt(context.Item.Id))"></MudButton>
+                <MudButton Size="Size.Small" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => DeleteReceiptAsync(context.Item.Id))"></MudButton>
             </CellTemplate>
         </TemplateColumn>
     </Columns>
+    <PagerContent>
+        <MudDataGridPager T="Receipt" />
+    </PagerContent>
 </MudDataGrid>
 
 @code {
 
     [Inject]
-    public ExpenseService ExpenseService { get; set; } = default!;
+    protected ExpenseService ExpenseService { get; set; } = default!;
     [Inject]
-    public ILogger<ReceiptIndex> Logger { get; set; } = default!;
+    protected ILogger<ReceiptIndex> Logger { get; set; } = default!;
     [Inject]
-    public NavigationManager NavigationManager { get; set; } = default!;
+    protected NavigationManager NavigationManager { get; set; } = default!;
+    [Inject]
+    protected IDialogService DialogService { get; set; } = default!;
 
 
 
@@ -55,6 +61,27 @@
     private void EditReceipt(string id)
     {
         NavigationManager.NavigateTo($"/receipts/edit/{id}", true);
+    }
+
+    private async Task DeleteReceiptAsync(string id)
+    {
+
+        bool? result = await DialogService.ShowMessageBox(
+            "Warning",
+            "Are you sure you want to delete the record?",
+            yesText: "Delete", cancelText: "Cancel");
+
+        StateHasChanged();
+
+        if(result != null && result.Value)
+        {
+            // Implement deletion logic here
+            Logger.LogInformation($"Delete receipt with ID: {id}");
+            await ExpenseService.DeleteReceipt(id);
+        }
+
+        // After deletion, you might want to refresh the list
+        NavigationManager.NavigateTo("/receipts", true);
     }
 
 
