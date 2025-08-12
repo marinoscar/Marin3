@@ -1,8 +1,91 @@
-﻿@page "/receipts/add"
+﻿
+
+@using MarinApp.Expenses.Entities
+@using Microsoft.Extensions.Logging
+@using MudBlazor
+
+@page "/receipts/add"
 @page "/receipts/edit/{id}"
 
 <h3>ReceiptForm</h3>
 
+<MudPaper Class="pa-4" Elevation="2">
+    <MudForm @ref="form">
+        <MudTextField @bind-Value="Receipt.Vendor"
+                      Label="Vendor"
+                      Required="true"
+                      MaxLength="200"
+                      For="@(() => Receipt.Vendor)" />
+        <MudTextField @bind-Value="Receipt.TotalAmount"
+                      Label="Total Amount"
+                      Required="true"
+                      For="@(() => Receipt.TotalAmount)"
+                      InputType="InputType.Number"
+                      Adornment="Adornment.End"
+                      AdornmentText="@Receipt.Currency" />
+        <MudTextField @bind-Value="Receipt.Currency"
+                      Label="Currency"
+                      MaxLength="3"
+                      For="@(() => Receipt.Currency)" />
+        <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save" Color="Color.Primary" OnClick="OnSubmit" Disabled="@(!form.IsValid)">
+            Save
+        </MudButton>
+        <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save" Color="Color.Primary" OnClick="OnCancel" Disabled="@(!form.IsValid)">
+            Cancel
+        </MudButton>
+    </MudForm>
+</MudPaper>
+
+
 @code {
+
+    /// <summary>
+    /// Injected service for managing expense receipts.
+    /// </summary>
+    [Inject]
+    protected ExpenseService ExpenseService { get; set; } = default!;
+
+    /// <summary>
+    /// Injected logger for logging information and warnings.
+    /// </summary>
+    [Inject]
+    protected ILogger<ReceiptIndex> Logger { get; set; } = default!;
+
+    /// <summary>
+    /// Injected navigation manager for page navigation.
+    /// </summary>
+    [Inject]
+    protected NavigationManager NavigationManager { get; set; } = default!;
+
+    /// <summary>
+    /// Injected dialog service for showing confirmation dialogs.
+    /// </summary>
+    [Inject]
+    protected IDialogService DialogService { get; set; } = default!;
+
+    public Receipt Receipt { get; set; } = new Receipt();
+
+
+
+
+
+
+    private MudForm form;
+
+    private async Task OnSubmit()
+    {
+        await form.Validate();
+        if (form.IsValid)
+        {
+            await ExpenseService.AddOrUpdateReceipt(Receipt);
+            NavigationManager.NavigateTo("/receipts");
+        }
+    }
+
+    private async Task OnCancel()
+    {
+        NavigationManager.NavigateTo("/receipts");
+    }
+
 
 }
