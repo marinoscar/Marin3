@@ -1,4 +1,5 @@
-﻿using MarinApp.Core.Extensions;
+﻿using MarinApp.Core.Data;
+using MarinApp.Core.Extensions;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System;
 using System.Collections.Generic;
@@ -56,5 +57,37 @@ namespace MarinApp.Core.Entities
         {
             return this.ToJson();
         }
+
+        /// <summary>
+        /// Retrieves the UI metadata for the current entity type.
+        /// This metadata includes information such as the entity's name, display name, description,
+        /// and a collection of field metadata describing each property of the entity.
+        /// <para>
+        /// The <see cref="UIEntityMetadata"/> object returned by this method is typically used to
+        /// dynamically generate user interface forms or views based on the structure and attributes
+        /// of the entity. It leverages reflection and custom attributes (such as <see cref="DisplayAttribute"/>,
+        /// <see cref="KeyAttribute"/>, and <see cref="RequiredAttribute"/>) to extract descriptive and
+        /// structural information about the entity's properties.
+        /// </para>
+        /// <para>
+        /// Example usage:
+        /// <code>
+        /// var metadata = myEntity.GetMetadata();
+        /// foreach (var field in metadata.Fields)
+        /// {
+        ///     Console.WriteLine($"{field.Name}: {field.DisplayName} ({field.FieldType.Name})");
+        /// }
+        /// </code>
+        /// </para>
+        /// </summary>
+        /// <returns>
+        /// A <see cref="UIEntityMetadata"/> instance containing metadata for the current entity type,
+        /// including its name, display name, description, and field definitions.
+        /// </returns>
+        public UIEntityMetadata GetMetadata()
+        {
+            return UIMetadataExtractor.Get(this.GetType());
+        }
+
     }
 }
