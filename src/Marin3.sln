@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarinApp.Core.Components", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarinApp.CodeBuilder", "..\MarinApp.CodeBuilder\MarinApp.CodeBuilder.csproj", "{2113143D-847B-452E-94BE-643443C936AC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarinApp.Expenses", "..\MarinApp.Expenses\MarinApp.Expenses.csproj", "{6F319464-3C46-470C-8E32-2D93146FA116}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{2113143D-847B-452E-94BE-643443C936AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2113143D-847B-452E-94BE-643443C936AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2113143D-847B-452E-94BE-643443C936AC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F319464-3C46-470C-8E32-2D93146FA116}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F319464-3C46-470C-8E32-2D93146FA116}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F319464-3C46-470C-8E32-2D93146FA116}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F319464-3C46-470C-8E32-2D93146FA116}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
