@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 
@@ -8,7 +9,9 @@ using Microsoft.Extensions.Logging.Console;
 /// a structured way to run console actions with error handling and logging.
 /// </summary>
 /// <remarks>
-/// Requires the nuget package: Microsoft.Extensions.Logging.Console
+/// Requires the nuget packages: 
+///  - Microsoft.Extensions.Logging.Console
+///  - Microsoft.Extensions.Hosting
 /// </remarks>
 class Program
 {
@@ -18,72 +21,49 @@ class Program
     private static ILogger _logger;
 
     /// <summary>
-    /// The service collection used for dependency injection setup.
-    /// </summary>
-    private static IServiceCollection _serviceCollection;
-
-    /// <summary>
-    /// The service provider built from the service collection.
-    /// </summary>
-    private static IServiceProvider _serviceProvider;
-
-    /// <summary>
     /// Main entry point for the application.
     /// Initializes services, logging, parses arguments, and executes the main action.
     /// </summary>
     /// <param name="args">Command-line arguments passed to the application.</param>
     static void Main(string[] args)
     {
-        var serviceProvider = new ServiceCollection();
-        _serviceCollection = serviceProvider;
+        // Create a HostApplicationBuilder instance.
+        // This provides configuration, dependency injection (DI), and logging setup for console apps.
+        var builder = Host.CreateApplicationBuilder(args);
+
+        // Parse command-line arguments into a strongly-typed options object.
         var arguments = new ConsoleOptions(args);
-        
-        InitializeLogger();
 
-        _serviceProvider = _serviceCollection.BuildServiceProvider();
-        _serviceProvider.CreateScope();
+        // Configure logging providers (console, file, etc.) through a custom initialization method.
+        InitializeLogger(builder);
 
-        var factory = _serviceProvider.GetRequiredService<ILoggerFactory>();
-        _logger = factory.CreateLogger("MarinApp");
-        RunAction(() =>
-        {
-            DoAction(arguments);
-        }, true);
+        // Build the Host from the configured builder.
+        // This finalizes the DI container and prepares services for use.
+        var app = builder.Build();
+
+        // Resolve the ILoggerFactory service from the DI container.
+        var factory = app.Services.GetRequiredService<ILoggerFactory>();
+
+        // Create a logger instance specifically for the Program class.
+        _logger = factory.CreateLogger<Program>();
+
+        // Execute the main console logic, passing in parsed command-line arguments.
+        RunConsole(arguments);
+
+        // Keep the application alive and responsive (useful for background services).
+        // This blocks until the host is shut down (e.g., by Ctrl+C).
+        app.Run();
     }
 
     /// <summary>
     /// Executes the main logic of the application.
     /// </summary>
     /// <param name="arguments">Parsed command-line options.</param>
-    static void DoAction(ConsoleOptions arguments)
+    static void RunConsole(ConsoleOptions arguments)
     {
         WriteLineInfo("Hello World");
     }
 
-    /// <summary>
-    /// Runs the provided action, handling exceptions and optionally waiting for a key press at the end.
-    /// </summary>
-    /// <param name="action">The action to execute.</param>
-    /// <param name="waitForKey">If true, waits for a key press after execution.</param>
-    public static void RunAction(Action action, bool waitForKey = false)
-    {
-        try
-        {
-            action();
-        }
-        catch (Exception exception)
-        {
-            WriteLineError(exception.ToString());
-        }
-        finally
-        {
-            if (waitForKey)
-            {
-                WriteLineInfo("Press any key to end");
-                Console.ReadKey();
-            }
-        }
-    }
 
     #region Console Methods
 
@@ -148,9 +128,9 @@ class Program
     /// Configures and adds logging services to the service collection.
     /// Sets up console logging with custom formatting and color behavior.
     /// </summary>
-    private static void InitializeLogger()
+    private static void InitializeLogger(HostApplicationBuilder builder)
     {
-        _serviceCollection.AddLogging(builder =>
+        builder.Services.AddLogging(builder =>
         {
             builder.AddConsole(options =>
             {
