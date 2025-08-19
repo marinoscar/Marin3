@@ -27,7 +27,12 @@ namespace MarinApp.DemoBuilder.Agents
                 client.GetChatClient("gpt-4o"), agentInfo.Name, agentInfo.SystemPrompt
             );
             _chatAgent.RegisterPrintMessage();
-            _chatAgent.RegisterPrintMessage();
+            _chatAgent.RegisterPrintFormatMessageHook(
+                (message) =>
+                {
+                    logger.LogInformation("Chat Message: {Message}", message);
+                }
+            );
         }
 
 

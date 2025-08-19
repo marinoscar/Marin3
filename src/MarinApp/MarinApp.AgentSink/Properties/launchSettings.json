@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "MarinApp.AgentSink": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}
