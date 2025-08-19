@@ -7,8 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Agents\" />
     <Folder Include="Tools\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoGen" Version="0.2.3" />
   </ItemGroup>
 
 </Project>
