@@ -1,4 +1,4 @@
-﻿using Google.Rpc;
+﻿using MarinApp.Core.Extensions;
 using MarinApp.Core.Configuration;
 using MarinApp.Core.Data;
 using Microsoft.EntityFrameworkCore;
@@ -42,7 +42,8 @@ class Program
             .LogTo(Console.WriteLine);
         });
 
-
+        //Add config provider
+        builder.AddAppConfigurationProvider();
 
         // Parse command-line arguments into a strongly-typed options object.
         var arguments = new ConsoleOptions(args);

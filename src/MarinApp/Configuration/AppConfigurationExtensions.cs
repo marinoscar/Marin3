@@ -132,19 +132,5 @@ namespace MarinApp.Configuration
             }
             return s;
         }
-
-        public static IHostApplicationBuilder AddAppConfigurationProvider(this IHostApplicationBuilder builder)
-        {
-            // Setup the configuration data source
-            var env = DbConnectionStringHelper.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Production");
-            var connString = DbConnectionStringHelper.GetConnectionString();
-            var serviceProvider = builder.Services.BuildServiceProvider();
-            var factory = serviceProvider.GetRequiredService<IDbContextFactory<AppDataContext>>();
-
-            builder.Configuration.AddDbConfigurationProvider(
-                factory,
-                env);
-            return builder;
-        }
     }
 }
