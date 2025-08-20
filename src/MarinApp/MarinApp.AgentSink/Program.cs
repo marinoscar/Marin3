@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using MarinApp.Core.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
@@ -27,6 +28,8 @@ class Program
     /// <param name="args">Command-line arguments passed to the application.</param>
     static void Main(string[] args)
     {
+        var connString = DbConnectionStringHelper.GetConnectionString();
+
         // Create a HostApplicationBuilder instance.
         // This provides configuration, dependency injection (DI), and logging setup for console apps.
         var builder = Host.CreateApplicationBuilder(args);
