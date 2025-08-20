@@ -43,6 +43,16 @@ namespace MarinApp.Terminal
             // Configure logging providers (console, file, etc.) through a custom initialization method.
             InitializeLogger(builder);
 
+            //Add Context Factory
+            builder.Services.AddDbContextFactory<AppDataContext>(options =>
+            {
+                options.UseNpgsql(DbConnectionStringHelper.GetConnectionString())
+                .LogTo(Console.WriteLine);
+            });
+
+            // Adds the configuration provider for the application
+            builder.AddAppConfigurationProvider();
+
             // Build the Host from the configured builder.
             // This finalizes the DI container and prepares services for use.
             var app = builder.Build();
