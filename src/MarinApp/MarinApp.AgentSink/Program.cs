@@ -1,4 +1,7 @@
-﻿using MarinApp.Core.Configuration;
+﻿using Google.Rpc;
+using MarinApp.Core.Configuration;
+using MarinApp.Core.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -28,11 +31,18 @@ class Program
     /// <param name="args">Command-line arguments passed to the application.</param>
     static void Main(string[] args)
     {
-        var connString = DbConnectionStringHelper.GetConnectionString();
-
         // Create a HostApplicationBuilder instance.
         // This provides configuration, dependency injection (DI), and logging setup for console apps.
         var builder = Host.CreateApplicationBuilder(args);
+
+        // Add Context Factory
+        builder.Services.AddDbContextFactory<AppDataContext>(options =>
+        {
+            options.UseNpgsql(DbConnectionStringHelper.GetConnectionString())
+            .LogTo(Console.WriteLine);
+        });
+
+
 
         // Parse command-line arguments into a strongly-typed options object.
         var arguments = new ConsoleOptions(args);
