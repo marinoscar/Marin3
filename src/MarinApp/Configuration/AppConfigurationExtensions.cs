@@ -133,10 +133,10 @@ namespace MarinApp.Configuration
             return s;
         }
 
-        public static WebApplicationBuilder AddAppConfigurationProvider(this WebApplicationBuilder builder)
+        public static IHostApplicationBuilder AddAppConfigurationProvider(this IHostApplicationBuilder builder)
         {
             // Setup the configuration data source
-            var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+            var env = DbConnectionStringHelper.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Production");
             var connString = DbConnectionStringHelper.GetConnectionString();
             var serviceProvider = builder.Services.BuildServiceProvider();
             var factory = serviceProvider.GetRequiredService<IDbContextFactory<Core.Data.AppDataContext>>();
