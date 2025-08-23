@@ -1,4 +1,5 @@
-﻿using MarinApp.Agents.Data;
+﻿using HandlebarsDotNet;
+using MarinApp.Agents.Data;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
@@ -21,7 +22,9 @@ namespace MarinApp.Agents
         public string Description { get; set; } = default!;
 
 
-        public virtual Kernel Kernel { get; protected set; } = default!;
+        protected virtual string SystemPrompt { get; set; } = default!;
+
+        protected virtual Kernel Kernel { get; set; } = default!;
 
         protected ILogger Logger { get; private set; } = default!;
         protected virtual IAgentHistoryService HistoryService { get; set; }
@@ -37,39 +40,122 @@ namespace MarinApp.Agents
             return SessionId;
         }
 
-        protected virtual async Task<AgentMessage> StreamMessageAsync(ChatMessageContent content, PromptExecutionSettings executionSettings, Action<StreamingChatMessageContent> onResponse, CancellationToken cancellationToken = default)
+        public virtual void SetSystemMessage<T>(string template, T data)
         {
-            if(onResponse == null) throw new ArgumentNullException(nameof(onResponse));
-            if(string.IsNullOrWhiteSpace(SessionId)) throw new InvalidOperationException("SessionId is not set. Please call StartSession() before streaming messages.");
+            if (string.IsNullOrWhiteSpace(template)) throw new ArgumentNullException(nameof(template));
+            if (data == null) throw new ArgumentNullException(nameof(data));
 
-            var history = new ChatHistory
-            {
-                content
-            };
+            var t = Handlebars.Compile(template);
+            var result = t(data);
+        }
 
-            var service = Kernel.GetRequiredService<IChatCompletionService>();
-            var sb = new StringBuilder();
-            StreamingChatMessageContent last = default!;
-            await foreach (var r in service.GetStreamingChatMessageContentsAsync(history, executionSettings, Kernel, cancellationToken))
+        public virtual void SetSystemMessage(string message)
+        {
+            if (string.IsNullOrWhiteSpace(message)) throw new ArgumentNullException(nameof(message));
+            SystemPrompt = message;
+        }
+
+        protected virtual void ResetHistory()
+        {
+            History.Clear();
+            var sysPrompt = SystemPrompt;
+            if (string.IsNullOrEmpty(sysPrompt))
+                sysPrompt = "You are a helpful assistant.";
+            History.AddSystemMessage(sysPrompt);
+        }
+
+        public virtual async Task<AgentMessage> StreamMessageAsync<T>(
+            string template,
+            T data,
+            PromptExecutionSettings executionSettings,
+            Action<StreamingChatMessageContent> onResponse,
+            CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(template)) throw new ArgumentNullException(nameof(template));
+            if (data == null) throw new ArgumentNullException(nameof(data));
+            var t = Handlebars.Compile(template);
+            string result = t(data);
+            return await StreamMessageAsync(result, executionSettings, onResponse, cancellationToken);
+        }
+
+        public virtual async Task<AgentMessage> StreamMessageAsync(
+            string prompt,
+            PromptExecutionSettings executionSettings,
+            Action<StreamingChatMessageContent> onResponse,
+            CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(prompt)) throw new ArgumentNullException(nameof(prompt));
+
+            var content = new ChatMessageContent();
+            content.Role = AuthorRole.User;
+            content.Items.Add(new TextContent(prompt));
+
+            return await StreamMessageAsync(content, executionSettings, onResponse, cancellationToken);
+        }
+
+
+        public virtual async Task<AgentMessage> StreamMessageAsync(
+            ChatMessageContent content,
+            PromptExecutionSettings executionSettings,
+            Action<StreamingChatMessageContent> onResponse,
+            CancellationToken cancellationToken = default)
+        {
+            try
             {
-                onResponse(r);
-                last = r;
-                sb.Append(r.Content);
+                if (onResponse == null) throw new ArgumentNullException(nameof(onResponse));
+                if (string.IsNullOrWhiteSpace(SessionId)) throw new InvalidOperationException("SessionId is not set. Please call StartSession() before streaming messages.");
+
+                History.Add(content);
+                var service = Kernel.GetRequiredService<IChatCompletionService>();
+                var sb = new StringBuilder();
+                StreamingChatMessageContent last = default!;
+                await foreach (var r in service.GetStreamingChatMessageContentsAsync(History, executionSettings, Kernel, cancellationToken))
+                {
+                    try
+                    {
+                        onResponse(r);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError(ex, "Error in onResponse callback during streaming.");
+                        // Optionally rethrow or continue
+                    }
+                    last = r;
+                    sb.Append(r.Content);
+                }
+                var res = new AgentMessage()
+                {
+                    SessionId = SessionId,
+                    AgentId = this.Id,
+                    AgentName = this.Name,
+                    Role = Convert.ToString(last.Role) ?? throw new ArgumentNullException(nameof(last.Role)),
+                    Content = sb.ToString(),
+                    InnerContent = System.Text.Json.JsonSerializer.Serialize(last.InnerContent) ?? "{}",
+                    MimeType = content.MimeType ?? "text/markdown",
+                    ModelId = content.ModelId ?? throw new ArgumentNullException(nameof(content.ModelId)),
+                    Metadata = content.Metadata != null ? System.Text.Json.JsonSerializer.Serialize(content.Metadata) : "{}"
+                };
+                try
+                {
+                    OnStreamCompleted(last, res);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "Error in OnStreamCompleted.");
+                }
+                await SaveMessageAsync(res, cancellationToken);
+                return res;
             }
-            var res = new AgentMessage() { 
-                SessionId = SessionId,
-                AgentId = this.Id,
-                AgentName = this.Name,
-                Role = Convert.ToString(last.Role) ?? throw new ArgumentNullException(nameof(last.Role)),
-                Content = sb.ToString(),
-                InnerContent = System.Text.Json.JsonSerializer.Serialize(last.InnerContent) ?? "{}",
-                MimeType = content.MimeType ?? "text/markdown",
-                ModelId = content.ModelId ?? throw new ArgumentNullException(nameof(content.ModelId)),
-                Metadata = content.Metadata != null ? System.Text.Json.JsonSerializer.Serialize(content.Metadata) : "{}"
-            };
-            OnStreamCompleted(last, res);
-            await SaveMessageAsync(res, cancellationToken);
-            return res;
+            catch (OperationCanceledException)
+            {
+                Logger.LogWarning("StreamMessageAsync was canceled.");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Exception in StreamMessageAsync.");
+                throw;
+            }
         }
 
         protected virtual void OnStreamCompleted(StreamingChatMessageContent lastContent, AgentMessage agentMessage)
@@ -77,19 +163,40 @@ namespace MarinApp.Agents
             // Override in derived classes to handle stream completion events.
         }
 
-        protected virtual async Task<AgentMessage> GetMessageAsync(ChatMessageContent content, PromptExecutionSettings executionSettings, Action<StreamingChatMessageContent> onResponse, CancellationToken cancellationToken = default)
+        public virtual async Task<AgentMessage> GetMessageAsync(
+            ChatMessageContent content,
+            PromptExecutionSettings executionSettings,
+            Action<StreamingChatMessageContent> onResponse,
+            CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(SessionId)) throw new InvalidOperationException("SessionId is not set. Please call StartSession() before streaming messages.");
-            var service = Kernel.GetRequiredService<IChatCompletionService>();
-            var history = new ChatHistory
+            try
             {
-                content
-            };
-            var response = await service.GetChatMessageContentAsync(history, executionSettings, Kernel, cancellationToken); 
-            var res = AgentMessage.Create(SessionId, this, response);
-            OnMessageCompleted(response, res);
-            await SaveMessageAsync(res, cancellationToken);
-            return res;
+                if (string.IsNullOrWhiteSpace(SessionId)) throw new InvalidOperationException("SessionId is not set. Please call StartSession() before streaming messages.");
+                var service = Kernel.GetRequiredService<IChatCompletionService>();
+                var history = new ChatHistory { content };
+                var response = await service.GetChatMessageContentAsync(history, executionSettings, Kernel, cancellationToken);
+                var res = AgentMessage.Create(SessionId, this, response);
+                try
+                {
+                    OnMessageCompleted(response, res);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "Error in OnMessageCompleted.");
+                }
+                await SaveMessageAsync(res, cancellationToken);
+                return res;
+            }
+            catch (OperationCanceledException)
+            {
+                Logger.LogWarning("GetMessageAsync was canceled.");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Exception in GetMessageAsync.");
+                throw;
+            }
         }
 
         protected virtual void OnMessageCompleted(ChatMessageContent messageContent, AgentMessage agentMessage)
@@ -99,9 +206,22 @@ namespace MarinApp.Agents
 
         protected virtual async Task SaveMessageAsync(AgentMessage message, CancellationToken cancellationToken = default)
         {
-            if (message == null) throw new ArgumentNullException(nameof(message));
-            if (string.IsNullOrWhiteSpace(SessionId)) throw new InvalidOperationException("SessionId is not set. Please call StartSession() before saving messages.");
-            await HistoryService.SaveMessageAsync(message, cancellationToken);
+            try
+            {
+                if (message == null) throw new ArgumentNullException(nameof(message));
+                if (string.IsNullOrWhiteSpace(SessionId)) throw new InvalidOperationException("SessionId is not set. Please call StartSession() before saving messages.");
+                await HistoryService.SaveMessageAsync(message, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                Logger.LogWarning("SaveMessageAsync was canceled.");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Exception in SaveMessageAsync.");
+                throw;
+            }
         }
 
 
