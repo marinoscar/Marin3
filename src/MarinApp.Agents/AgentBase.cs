@@ -123,28 +123,27 @@ namespace MarinApp.Agents
                     last = r;
                     sb.Append(r.Content);
                 }
-                var res = new AgentMessage()
+                var chatMesage = new ChatMessageContent()
                 {
-                    SessionId = SessionId,
-                    AgentId = this.Id,
-                    AgentName = this.Name,
-                    Role = Convert.ToString(last.Role) ?? throw new ArgumentNullException(nameof(last.Role)),
+                    Role = last.Role.Value,
                     Content = sb.ToString(),
-                    InnerContent = System.Text.Json.JsonSerializer.Serialize(last.InnerContent) ?? "{}",
-                    MimeType = content.MimeType ?? "text/markdown",
-                    ModelId = content.ModelId ?? throw new ArgumentNullException(nameof(content.ModelId)),
-                    Metadata = content.Metadata != null ? System.Text.Json.JsonSerializer.Serialize(content.Metadata) : "{}"
+                    InnerContent = last.InnerContent,
+                    MimeType = content.MimeType,
+                    ModelId = last.ModelId,
+                    Metadata = last.Metadata,
+                    Encoding = last.Encoding,
                 };
+                var agentResponse = AgentMessage.Create(SessionId, this, chatMesage);
                 try
                 {
-                    OnStreamCompleted(last, res);
+                    OnStreamCompleted(last, agentResponse);
                 }
                 catch (Exception ex)
                 {
                     Logger.LogError(ex, "Error in OnStreamCompleted.");
                 }
-                await SaveMessageAsync(res, cancellationToken);
-                return res;
+                await SaveMessageAsync(AgentMessage.Create(SessionId, this, content), agentResponse, cancellationToken);
+                return agentResponse;
             }
             catch (OperationCanceledException)
             {
@@ -204,7 +203,9 @@ namespace MarinApp.Agents
                 if (string.IsNullOrWhiteSpace(SessionId)) throw new InvalidOperationException("SessionId is not set. Please call StartSession() before streaming messages.");
                 var service = Kernel.GetRequiredService<IChatCompletionService>();
                 History.Add(content);
+
                 OnBeforeMessageSent(content);
+
                 var apiResponse = await service.GetChatMessageContentAsync(History, executionSettings, Kernel, cancellationToken);
                 var agentResponse = AgentMessage.Create(SessionId, this, apiResponse);
                 try
