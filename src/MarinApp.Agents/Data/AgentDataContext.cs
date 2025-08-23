@@ -80,5 +80,7 @@ namespace MarinApp.Agents.Data
 
             return new AgentDataContext(optionsBuilder.Options);
         }
+
+
     }
 }
