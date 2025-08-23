@@ -80,6 +80,16 @@ namespace MarinApp.Agents.Data
 
             return new AgentDataContext(optionsBuilder.Options);
         }
+        public static AgentDataContext CreateSqlite(string connectionString)
+        {
+            if (string.IsNullOrWhiteSpace(connectionString))
+                throw new ArgumentNullException(nameof(connectionString), "Connection string cannot be null or empty.");
+
+            var optionsBuilder = new DbContextOptionsBuilder<AgentDataContext>();
+            optionsBuilder.UseSqlite(connectionString);
+
+            return new AgentDataContext(optionsBuilder.Options);
+        }
 
 
     }
