@@ -58,7 +58,6 @@ namespace MarinApp.Agents.Data
                       .HasMaxLength(64);
                 entity.Property(e => e.Metadata)
                       .IsRequired()
-                      .HasColumnType("jsonb")
                       .HasDefaultValue("{}");
                 entity.Property(e => e.UtcCreatedAt)
                       .IsRequired();
