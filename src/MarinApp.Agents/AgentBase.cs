@@ -14,6 +14,7 @@ namespace MarinApp.Agents
             Kernel = kernel ?? throw new ArgumentNullException(nameof(kernel));
             HistoryService = agentHistoryService ?? throw new ArgumentNullException(nameof(agentHistoryService));
             Logger = loggerFactory?.CreateLogger(this.GetType().Name) ?? throw new ArgumentNullException(nameof(loggerFactory));
+            Logger.LogDebug("AgentBase constructed with Kernel: {KernelType}, HistoryService: {HistoryServiceType}", kernel.GetType().Name, agentHistoryService.GetType().Name);
         }
 
         public string Id { get; set; } = default!;
@@ -31,18 +32,29 @@ namespace MarinApp.Agents
         {
             SessionId = Guid.NewGuid().ToString().Replace("-", "").ToUpperInvariant();
             History = new ChatHistory();
+            Logger.LogInformation("Session started. SessionId: {SessionId}", SessionId);
             return SessionId;
         }
 
         public virtual void SetSystemMessage<T>(string template, T data)
         {
-            if (string.IsNullOrWhiteSpace(template)) throw new ArgumentNullException(nameof(template));
-            if (data == null) throw new ArgumentNullException(nameof(data));
+            if (string.IsNullOrWhiteSpace(template))
+            {
+                Logger.LogError("SetSystemMessage<T> called with null or whitespace template.");
+                throw new ArgumentNullException(nameof(template));
+            }
+            if (data == null)
+            {
+                Logger.LogError("SetSystemMessage<T> called with null data.");
+                throw new ArgumentNullException(nameof(data));
+            }
 
             try
             {
+                Logger.LogDebug("Compiling Handlebars template in SetSystemMessage<T>.");
                 var t = Handlebars.Compile(template);
                 var result = t(data);
+                Logger.LogDebug("System message set using template. Result: {Result}", result);
             }
             catch (Exception ex)
             {
@@ -53,7 +65,12 @@ namespace MarinApp.Agents
 
         public virtual void SetSystemMessage(string message)
         {
-            if (string.IsNullOrWhiteSpace(message)) throw new ArgumentNullException(nameof(message));
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                Logger.LogError("SetSystemMessage called with null or whitespace message.");
+                throw new ArgumentNullException(nameof(message));
+            }
+            Logger.LogDebug("SystemPrompt set to: {Message}", message);
             SystemPrompt = message;
         }
 
@@ -61,11 +78,16 @@ namespace MarinApp.Agents
         {
             try
             {
+                Logger.LogDebug("Resetting chat history.");
                 History.Clear();
                 var sysPrompt = SystemPrompt;
                 if (string.IsNullOrEmpty(sysPrompt))
+                {
+                    Logger.LogDebug("SystemPrompt is empty, using default system prompt.");
                     sysPrompt = "You are a helpful assistant.";
+                }
                 History.AddSystemMessage(sysPrompt);
+                Logger.LogInformation("Chat history reset. SystemPrompt: {SystemPrompt}", sysPrompt);
             }
             catch (Exception ex)
             {
@@ -81,12 +103,22 @@ namespace MarinApp.Agents
             Action<StreamingChatMessageContent> onResponse,
             CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(template)) throw new ArgumentNullException(nameof(template));
-            if (data == null) throw new ArgumentNullException(nameof(data));
+            if (string.IsNullOrWhiteSpace(template))
+            {
+                Logger.LogError("StreamMessageAsync<T> called with null or whitespace template.");
+                throw new ArgumentNullException(nameof(template));
+            }
+            if (data == null)
+            {
+                Logger.LogError("StreamMessageAsync<T> called with null data.");
+                throw new ArgumentNullException(nameof(data));
+            }
             try
             {
+                Logger.LogDebug("Compiling Handlebars template in StreamMessageAsync<T>.");
                 var t = Handlebars.Compile(template);
                 string result = t(data);
+                Logger.LogDebug("Streaming message with compiled template result: {Result}", result);
                 return await StreamMessageAsync(result, executionSettings, onResponse, cancellationToken);
             }
             catch (Exception ex)
@@ -102,10 +134,15 @@ namespace MarinApp.Agents
             Action<StreamingChatMessageContent> onResponse,
             CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(prompt)) throw new ArgumentNullException(nameof(prompt));
+            if (string.IsNullOrWhiteSpace(prompt))
+            {
+                Logger.LogError("StreamMessageAsync called with null or whitespace prompt.");
+                throw new ArgumentNullException(nameof(prompt));
+            }
 
             try
             {
+                Logger.LogDebug("Creating ChatMessageContent for streaming. Prompt: {Prompt}", prompt);
                 var content = new ChatMessageContent();
                 content.Role = AuthorRole.User;
                 content.Items.Add(new TextContent(prompt));
@@ -127,27 +164,38 @@ namespace MarinApp.Agents
         {
             try
             {
-                if (onResponse == null) throw new ArgumentNullException(nameof(onResponse));
-                if (string.IsNullOrWhiteSpace(SessionId)) throw new InvalidOperationException("SessionId is not set. Please call StartSession() before streaming messages.");
+                if (onResponse == null)
+                {
+                    Logger.LogError("StreamMessageAsync called with null onResponse callback.");
+                    throw new ArgumentNullException(nameof(onResponse));
+                }
+                if (string.IsNullOrWhiteSpace(SessionId))
+                {
+                    Logger.LogError("StreamMessageAsync called without a valid SessionId.");
+                    throw new InvalidOperationException("SessionId is not set. Please call StartSession() before streaming messages.");
+                }
 
+                Logger.LogDebug("Adding user message to history for streaming. Content: {Content}", content.Content);
                 History.Add(content);
                 var service = Kernel.GetRequiredService<IChatCompletionService>();
                 var sb = new StringBuilder();
                 StreamingChatMessageContent last = default!;
+                Logger.LogInformation("Starting streaming chat message contents.");
                 await foreach (var r in service.GetStreamingChatMessageContentsAsync(History, executionSettings, Kernel, cancellationToken))
                 {
                     try
                     {
+                        Logger.LogDebug("Received streaming response chunk. Content: {ChunkContent}", r.Content);
                         onResponse(r);
                     }
                     catch (Exception ex)
                     {
                         Logger.LogError(ex, "Error in onResponse callback during streaming.");
-                        // Optionally rethrow or continue
                     }
                     last = r;
                     sb.Append(r.Content);
                 }
+                Logger.LogInformation("Streaming complete. Assembling final chat message.");
                 var chatMesage = new ChatMessageContent()
                 {
                     Role = last.Role.Value,
@@ -161,7 +209,9 @@ namespace MarinApp.Agents
                 var agentResponse = AgentMessage.Create(SessionId, this, chatMesage);
                 OnMessageCompleted(chatMesage, agentResponse);
 
+                Logger.LogDebug("Saving streamed user and agent messages.");
                 await SaveMessageAsync(AgentMessage.Create(SessionId, this, content), agentResponse, cancellationToken);
+                Logger.LogInformation("Streamed message saved successfully.");
                 return agentResponse;
             }
             catch (OperationCanceledException)
@@ -183,12 +233,22 @@ namespace MarinApp.Agents
             Action<StreamingChatMessageContent> onResponse,
             CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(template)) throw new ArgumentNullException(nameof(template));
-            if (data == null) throw new ArgumentNullException(nameof(data));
+            if (string.IsNullOrWhiteSpace(template))
+            {
+                Logger.LogError("GetMessageAsync<T> called with null or whitespace template.");
+                throw new ArgumentNullException(nameof(template));
+            }
+            if (data == null)
+            {
+                Logger.LogError("GetMessageAsync<T> called with null data.");
+                throw new ArgumentNullException(nameof(data));
+            }
             try
             {
+                Logger.LogDebug("Compiling Handlebars template in GetMessageAsync<T>.");
                 var t = Handlebars.Compile(template);
                 string result = t(data);
+                Logger.LogDebug("Getting message with compiled template result: {Result}", result);
 
                 return await GetMessageAsync(result, executionSettings, onResponse, cancellationToken);
             }
@@ -205,10 +265,15 @@ namespace MarinApp.Agents
             Action<StreamingChatMessageContent> onResponse,
             CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(prompt)) throw new ArgumentNullException(nameof(prompt));
+            if (string.IsNullOrWhiteSpace(prompt))
+            {
+                Logger.LogError("GetMessageAsync called with null or whitespace prompt.");
+                throw new ArgumentNullException(nameof(prompt));
+            }
 
             try
             {
+                Logger.LogDebug("Creating ChatMessageContent for GetMessageAsync. Prompt: {Prompt}", prompt);
                 var content = new ChatMessageContent();
                 content.Role = AuthorRole.User;
                 content.Items.Add(new TextContent(prompt));
@@ -229,23 +294,33 @@ namespace MarinApp.Agents
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(SessionId)) throw new InvalidOperationException("SessionId is not set. Please call StartSession() before streaming messages.");
+                if (string.IsNullOrWhiteSpace(SessionId))
+                {
+                    Logger.LogError("GetMessageAsync called without a valid SessionId.");
+                    throw new InvalidOperationException("SessionId is not set. Please call StartSession() before streaming messages.");
+                }
                 var service = Kernel.GetRequiredService<IChatCompletionService>();
+                Logger.LogDebug("Adding user message to history for GetMessageAsync. Content: {Content}", content.Content);
                 History.Add(content);
 
+                Logger.LogDebug("Calling OnBeforeMessageSent.");
                 OnBeforeMessageSent(content);
 
+                Logger.LogInformation("Requesting chat message content from service.");
                 var apiResponse = await service.GetChatMessageContentAsync(History, executionSettings, Kernel, cancellationToken);
                 var agentResponse = AgentMessage.Create(SessionId, this, apiResponse);
                 try
                 {
+                    Logger.LogDebug("Calling OnMessageCompleted.");
                     OnMessageCompleted(apiResponse, agentResponse);
                 }
                 catch (Exception ex)
                 {
                     Logger.LogError(ex, "Error in OnMessageCompleted.");
                 }
+                Logger.LogDebug("Saving user and agent messages for GetMessageAsync.");
                 await SaveMessageAsync(AgentMessage.Create(SessionId, this, content), agentResponse, cancellationToken);
+                Logger.LogInformation("GetMessageAsync completed and messages saved.");
                 return agentResponse;
             }
             catch (OperationCanceledException)
@@ -262,16 +337,19 @@ namespace MarinApp.Agents
 
         protected virtual void OnMessageCompleted(ChatMessageContent messageContent, AgentMessage agentMessage)
         {
+            Logger.LogDebug("OnMessageCompleted called. MessageContent: {Content}, AgentMessageId: {AgentMessageId}", messageContent?.Content, agentMessage?.Id);
             // Override in derived classes to handle stream completion events.
         }
 
         public virtual void OnBeforeMessageSent(ChatMessageContent messageContent)
         {
+            Logger.LogDebug("OnBeforeMessageSent called. MessageContent: {Content}", messageContent?.Content);
             // Override in derived classes to handle events before sending a message.
         }
 
         protected virtual void OnMessageSaved(AgentMessage userMessage, AgentMessage agentResponse)
         {
+            Logger.LogDebug("OnMessageSaved called. UserMessageId: {UserMessageId}, AgentResponseId: {AgentResponseId}", userMessage?.Id, agentResponse?.Id);
             // Override in derived classes to handle events after saving messages.
         }
 
@@ -279,14 +357,29 @@ namespace MarinApp.Agents
         {
             try
             {
-                if (agentResponse == null) throw new ArgumentNullException(nameof(agentResponse));
-                if (userMessage == null) throw new ArgumentNullException(nameof(userMessage));
+                if (agentResponse == null)
+                {
+                    Logger.LogError("SaveMessageAsync called with null agentResponse.");
+                    throw new ArgumentNullException(nameof(agentResponse));
+                }
+                if (userMessage == null)
+                {
+                    Logger.LogError("SaveMessageAsync called with null userMessage.");
+                    throw new ArgumentNullException(nameof(userMessage));
+                }
 
-                if (string.IsNullOrWhiteSpace(SessionId)) throw new InvalidOperationException("SessionId is not set. Please call StartSession() before saving messages.");
+                if (string.IsNullOrWhiteSpace(SessionId))
+                {
+                    Logger.LogError("SaveMessageAsync called without a valid SessionId.");
+                    throw new InvalidOperationException("SessionId is not set. Please call StartSession() before saving messages.");
+                }
 
+                Logger.LogDebug("Saving user message. Id: {UserMessageId}", userMessage.Id);
                 await HistoryService.SaveMessageAsync(userMessage, cancellationToken);
+                Logger.LogDebug("Saving agent response message. Id: {AgentResponseId}", agentResponse.Id);
                 await HistoryService.SaveMessageAsync(agentResponse, cancellationToken);
 
+                Logger.LogDebug("Calling OnMessageSaved after saving messages.");
                 OnMessageSaved(userMessage, agentResponse);
             }
             catch (OperationCanceledException)
@@ -303,6 +396,7 @@ namespace MarinApp.Agents
 
         public override string ToString()
         {
+            Logger.LogDebug("ToString called for AgentBase.");
             return $"{Name} ({Id}) - {Description}";
         }
     }
