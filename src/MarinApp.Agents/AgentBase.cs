@@ -10,22 +10,56 @@ namespace MarinApp.Agents
     /// <summary>
     /// Provides a base class for conversational agents, encapsulating session management, message streaming, templating, and history persistence.
     /// </summary>
-    public class AgentBase : IAgent
+    public abstract class AgentBase : IAgent
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="AgentBase"/> class with the specified kernel, history service, and logger factory.
         /// </summary>
-        /// <param name="kernel">The semantic kernel used for chat completion and service resolution.</param>
         /// <param name="agentHistoryService">The service responsible for persisting and retrieving agent message history.</param>
         /// <param name="loggerFactory">The logger factory used to create a logger for this agent.</param>
         /// <exception cref="ArgumentNullException">Thrown if any argument is null.</exception>
-        public AgentBase(Kernel kernel, IAgentHistoryService agentHistoryService, ILoggerFactory loggerFactory)
+        public AgentBase(IAgentHistoryService agentHistoryService, ILoggerFactory loggerFactory)
         {
-            Kernel = kernel ?? throw new ArgumentNullException(nameof(kernel));
+            Kernel = InitializeKernel() ?? throw new InvalidOperationException("Failed to initalize Kernel");
             HistoryService = agentHistoryService ?? throw new ArgumentNullException(nameof(agentHistoryService));
             Logger = loggerFactory?.CreateLogger(this.GetType().Name) ?? throw new ArgumentNullException(nameof(loggerFactory));
             Logger.LogDebug("AgentBase constructed with Kernel: {KernelType}, HistoryService: {HistoryServiceType}", kernel.GetType().Name, agentHistoryService.GetType().Name);
         }
+
+        /// <summary>
+        /// When implemented in a derived class, initializes and returns a new instance of the <see cref="Kernel"/> used by the agent.
+        /// <para>
+        /// The <see cref="Kernel"/> is responsible for providing semantic services such as chat completion, prompt execution, and service resolution.
+        /// This method should be overridden in concrete agent implementations to configure and return a properly initialized <see cref="Kernel"/> instance
+        /// with all required plugins, models, and services registered.
+        /// </para>
+        /// <para>
+        /// <b>Example override:</b>
+        /// <code>
+        /// protected override Kernel InitializeKernel()
+        /// {
+        ///     var builder = new KernelBuilder();
+        ///     builder.AddChatCompletionService(...);
+        ///     builder.AddPlugin(...);
+        ///     return builder.Build();
+        /// }
+        /// </code>
+        /// </para>
+        /// <para>
+        /// <b>Exceptions:</b>
+        /// <list type="bullet">
+        /// <item>
+        /// <description>
+        /// If the method returns <c>null</c>, the <see cref="AgentBase"/> constructor will throw an <see cref="ArgumentNullException"/>.
+        /// </description>
+        /// </item>
+        /// </list>
+        /// </para>
+        /// </summary>
+        /// <returns>
+        /// A fully initialized <see cref="Kernel"/> instance to be used by the agent for semantic operations.
+        /// </returns>
+        protected abstract Kernel InitializeKernel();
 
         /// <summary>
         /// Occurs when a message has been completed and processed by the agent.
