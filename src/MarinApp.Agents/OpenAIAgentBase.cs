@@ -7,21 +7,39 @@ using Polly;
 
 namespace MarinApp.Agents
 {
-    /// <summary>
-    /// Provides a base class for OpenAI-powered conversational agents, encapsulating kernel initialization,
-    /// HTTP client configuration with retry policies, and API key management.
+    
+    ///<summary>
+    /// Provides an abstract base class for OpenAI-powered conversational agents.
     /// <para>
-    /// This class is intended to be inherited by concrete agent implementations that interact with OpenAI models
-    /// via the Microsoft Semantic Kernel. It ensures robust communication with OpenAI endpoints by configuring
-    /// an <see cref="HttpClient"/> with an exponential backoff retry policy and supports flexible API key retrieval
-    /// from environment variables or application configuration.
+    /// This class encapsulates the configuration and initialization of the Semantic Kernel with OpenAI chat completion support,
+    /// including robust HTTP client retry policies, model selection, and API key management.
     /// </para>
     /// <para>
     /// Derived classes must implement <see cref="GetModelName"/> to specify the OpenAI model to use.
     /// </para>
+    /// <para>
+    /// The class also provides extension points for customizing the kernel builder via <see cref="OnBuildingKernel"/>.
+    /// </para>
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The <see cref="OpenAIAgentBase"/> is designed for use in .NET 9 applications, leveraging dependency injection
+    /// and configuration patterns. It ensures that all HTTP requests to OpenAI endpoints are resilient to transient failures
+    /// by applying an exponential backoff retry policy using Polly.
+    /// </para>
+    /// <para>
+    /// API keys are resolved in the following order:
+    /// <list type="number">
+    /// <item>Environment variables: <c>OPENAI_API_KEY</c>, <c>OPENAI_KEY</c>, <c>OPENAI_API</c></item>
+    /// <item>App configuration: <c>OpenAI:ApiKey</c></item>
+    /// </list>
+    /// </para>
+    /// </remarks>
     public abstract class OpenAIAgentBase : AgentBase
     {
+        /// <summary>
+        /// The application configuration instance used to resolve API keys and other settings.
+        /// </summary>
         private readonly IConfiguration _configuration;
 
         /// <summary>
@@ -29,7 +47,7 @@ namespace MarinApp.Agents
         /// </summary>
         /// <param name="agentHistoryService">The service responsible for persisting and retrieving agent message history.</param>
         /// <param name="loggerFactory">The logger factory used to create a logger for this agent.</param>
-        /// <param name="configuration">The application configuration for retrieving API keys and settings.</param>
+        /// <param name="configuration">The application configuration instance.</param>
         /// <exception cref="ArgumentNullException">Thrown if any argument is null.</exception>
         public OpenAIAgentBase(
             IAgentHistoryService agentHistoryService,
@@ -41,14 +59,22 @@ namespace MarinApp.Agents
         }
 
         /// <summary>
-        /// Initializes and returns a new instance of the <see cref="Kernel"/> used by the agent.
+        /// Initializes and returns a new instance of the <see cref="Kernel"/> configured for OpenAI chat completion.
         /// <para>
-        /// Configures an <see cref="HttpClient"/> with a retry policy for resilient OpenAI API calls,
-        /// sets up logging, and registers the OpenAI chat completion service with the specified model and API key.
+        /// This method sets up an <see cref="IHttpClientFactory"/> with a Polly retry policy for resilient HTTP requests,
+        /// configures the OpenAI chat completion service with the specified model and API key, and allows derived classes
+        /// to further customize the kernel builder.
         /// </para>
         /// </summary>
-        /// <returns>A fully initialized <see cref="Kernel"/> instance for semantic operations.</returns>
-        /// <exception cref="Exception">Thrown if kernel initialization fails.</exception>
+        /// <returns>
+        /// A fully initialized <see cref="Kernel"/> instance with OpenAI chat completion and logging configured.
+        /// </returns>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown if the OpenAI API key cannot be resolved from environment variables or configuration.
+        /// </exception>
+        /// <exception cref="Exception">
+        /// Thrown if kernel initialization fails for any reason.
+        /// </exception>
         protected override Kernel InitializeKernel()
         {
             var builder = Kernel.CreateBuilder();
@@ -75,8 +101,10 @@ namespace MarinApp.Agents
                     httpClient: httpClient
                 );
 
+                // Add debug logging for the kernel
                 builder.Services.AddLogging(c => c.AddDebug().SetMinimumLevel(LogLevel.Trace));
 
+                // Allow derived classes to further customize the kernel builder
                 OnBuildingKernel(builder);
 
                 kernel = builder.Build();
@@ -93,26 +121,27 @@ namespace MarinApp.Agents
         }
 
         /// <summary>
-        /// Allows derived classes to customize the kernel builder before the kernel is built.
+        /// Extension point for derived classes to customize the <see cref="IKernelBuilder"/> before the kernel is built.
         /// <para>
-        /// Override this method to add plugins, configure additional services, or modify the kernel builder as needed.
+        /// Override this method to add plugins, services, or other configuration to the kernel builder.
         /// </para>
         /// </summary>
         /// <param name="builder">The kernel builder instance to customize.</param>
         protected virtual void OnBuildingKernel(IKernelBuilder builder)
         {
-            // Allow derived classes to customize the kernel builder if needed
             Logger?.LogDebug("OnBuildingKernel called in OpenAIAgentBase.");
         }
 
         /// <summary>
-        /// Creates and returns an asynchronous retry policy for HTTP requests.
+        /// Creates and returns a Polly asynchronous retry policy for HTTP requests.
         /// <para>
-        /// The policy retries on <see cref="HttpRequestException"/>, HTTP 429 (Too Many Requests), and server errors (HTTP 5xx),
-        /// using exponential backoff with up to 3 retries.
+        /// The policy retries on <see cref="HttpRequestException"/>, HTTP 429 (Too Many Requests), and all 5xx server errors,
+        /// using exponential backoff (2^attempt seconds) for up to 3 retries.
         /// </para>
         /// </summary>
-        /// <returns>An asynchronous retry policy for <see cref="HttpResponseMessage"/>.</returns>
+        /// <returns>
+        /// An <see cref="IAsyncPolicy{HttpResponseMessage}"/> instance for resilient HTTP requests.
+        /// </returns>
         private IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
         {
             return Policy<HttpResponseMessage>
@@ -129,20 +158,25 @@ namespace MarinApp.Agents
         }
 
         /// <summary>
-        /// When implemented in a derived class, returns the name or identifier of the OpenAI model to use for chat completion.
+        /// When implemented in a derived class, returns the OpenAI model name to use for chat completion.
+        /// <para>
+        /// Example: <c>"gpt-4"</c>, <c>"gpt-3.5-turbo"</c>, etc.
+        /// </para>
         /// </summary>
-        /// <returns>The model name or identifier.</returns>
+        /// <returns>The model name as a string.</returns>
         protected abstract string GetModelName();
 
         /// <summary>
-        /// Retrieves the OpenAI API key from environment variables or application configuration.
+        /// Resolves the OpenAI API key from environment variables or application configuration.
         /// <para>
-        /// Checks the "OPENAI_API_KEY", "OPENAI_KEY", "OPENAI_API" environment variable (process, user, and machine scopes) first,
-        /// then falls back to the "OpenAI:ApiKey" setting in the application configuration.
+        /// The following environment variables are checked in order: <c>OPENAI_API_KEY</c>, <c>OPENAI_KEY</c>, <c>OPENAI_API</c>.
+        /// If none are found, the configuration key <c>OpenAI:ApiKey</c> is used.
         /// </para>
         /// </summary>
         /// <returns>The OpenAI API key as a string.</returns>
-        /// <exception cref="InvalidOperationException">Thrown if the API key is not found.</exception>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown if the API key cannot be found in environment variables or configuration.
+        /// </exception>
         protected virtual string GetApiKey()
         {
             var key = string.Empty;
@@ -160,6 +194,11 @@ namespace MarinApp.Agents
             throw new InvalidOperationException("OpenAI API key not found in environment variables or configuration.");
         }
 
+        /// <summary>
+        /// Helper method to retrieve an environment variable value from process, user, or machine scope.
+        /// </summary>
+        /// <param name="key">The environment variable name.</param>
+        /// <returns>The value of the environment variable, or <c>null</c> if not found.</returns>
         private string? GetEnvValue(string key)
         {
             return Environment.GetEnvironmentVariable(key, EnvironmentVariableTarget.Process) ??
