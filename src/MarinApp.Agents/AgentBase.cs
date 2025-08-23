@@ -10,7 +10,7 @@ namespace MarinApp.Agents
     /// <summary>
     /// Provides a base class for conversational agents, encapsulating session management, message streaming, templating, and history persistence.
     /// </summary>
-    public class AgentBase : IAgentBase
+    public class AgentBase : IAgent
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="AgentBase"/> class with the specified kernel, history service, and logger factory.

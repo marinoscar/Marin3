@@ -4,7 +4,7 @@ using Microsoft.SemanticKernel.ChatCompletion;
 
 namespace MarinApp.Agents
 {
-    public interface IAgentBase
+    public interface IAgent
     {
         string Description { get; set; }
         ChatHistory History { get; }
