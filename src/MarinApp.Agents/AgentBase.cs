@@ -163,6 +163,36 @@ namespace MarinApp.Agents
             // Override in derived classes to handle stream completion events.
         }
 
+
+        public virtual async Task<AgentMessage> GetMessageAsync<T>(
+            string template,
+            T data,
+            PromptExecutionSettings executionSettings,
+            Action<StreamingChatMessageContent> onResponse,
+            CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(template)) throw new ArgumentNullException(nameof(template));
+            if (data == null) throw new ArgumentNullException(nameof(data));
+            var t = Handlebars.Compile(template);
+            string result = t(data);
+
+            return await GetMessageAsync(result, executionSettings, onResponse, cancellationToken);
+        }
+
+        public virtual async Task<AgentMessage> GetMessageAsync(
+            string prompt,
+            PromptExecutionSettings executionSettings,
+            Action<StreamingChatMessageContent> onResponse,
+            CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(prompt)) throw new ArgumentNullException(nameof(prompt));
+
+            var content = new ChatMessageContent();
+            content.Role = AuthorRole.User;
+            content.Items.Add(new TextContent(prompt));
+            return await GetMessageAsync(content, executionSettings, onResponse, cancellationToken);
+        }
+
         public virtual async Task<AgentMessage> GetMessageAsync(
             ChatMessageContent content,
             PromptExecutionSettings executionSettings,
@@ -173,19 +203,20 @@ namespace MarinApp.Agents
             {
                 if (string.IsNullOrWhiteSpace(SessionId)) throw new InvalidOperationException("SessionId is not set. Please call StartSession() before streaming messages.");
                 var service = Kernel.GetRequiredService<IChatCompletionService>();
-                var history = new ChatHistory { content };
-                var response = await service.GetChatMessageContentAsync(history, executionSettings, Kernel, cancellationToken);
-                var res = AgentMessage.Create(SessionId, this, response);
+                History.Add(content);
+                OnBeforeMessageSent(content);
+                var apiResponse = await service.GetChatMessageContentAsync(History, executionSettings, Kernel, cancellationToken);
+                var agentResponse = AgentMessage.Create(SessionId, this, apiResponse);
                 try
                 {
-                    OnMessageCompleted(response, res);
+                    OnMessageCompleted(apiResponse, agentResponse);
                 }
                 catch (Exception ex)
                 {
                     Logger.LogError(ex, "Error in OnMessageCompleted.");
                 }
-                await SaveMessageAsync(res, cancellationToken);
-                return res;
+                await SaveMessageAsync(AgentMessage.Create(SessionId,this, content), agentResponse, cancellationToken);
+                return agentResponse;
             }
             catch (OperationCanceledException)
             {
@@ -204,13 +235,22 @@ namespace MarinApp.Agents
             // Override in derived classes to handle stream completion events.
         }
 
-        protected virtual async Task SaveMessageAsync(AgentMessage message, CancellationToken cancellationToken = default)
+        public virtual void OnBeforeMessageSent(ChatMessageContent messageContent)
+        {
+            // Override in derived classes to handle events before sending a message.
+        }
+
+        protected virtual async Task SaveMessageAsync(AgentMessage userMessage, AgentMessage agentResponse, CancellationToken cancellationToken = default)
         {
             try
             {
-                if (message == null) throw new ArgumentNullException(nameof(message));
+                if (agentResponse == null) throw new ArgumentNullException(nameof(agentResponse));
+                if (userMessage == null) throw new ArgumentNullException(nameof(userMessage));
+
                 if (string.IsNullOrWhiteSpace(SessionId)) throw new InvalidOperationException("SessionId is not set. Please call StartSession() before saving messages.");
-                await HistoryService.SaveMessageAsync(message, cancellationToken);
+
+                await HistoryService.SaveMessageAsync(userMessage, cancellationToken);
+                await HistoryService.SaveMessageAsync(agentResponse, cancellationToken);
             }
             catch (OperationCanceledException)
             {
