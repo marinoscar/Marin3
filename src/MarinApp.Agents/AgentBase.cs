@@ -9,7 +9,6 @@ namespace MarinApp.Agents
 {
     public class AgentBase
     {
-
         public AgentBase(Kernel kernel, IAgentHistoryService agentHistoryService, ILoggerFactory loggerFactory)
         {
             Kernel = kernel ?? throw new ArgumentNullException(nameof(kernel));
@@ -21,17 +20,12 @@ namespace MarinApp.Agents
         public string Name { get; set; } = default!;
         public string Description { get; set; } = default!;
 
-
         protected virtual string SystemPrompt { get; set; } = default!;
-
         protected virtual Kernel Kernel { get; set; } = default!;
-
         protected ILogger Logger { get; private set; } = default!;
         protected virtual IAgentHistoryService HistoryService { get; set; }
-
         protected virtual string SessionId { get; set; } = default!;
         protected virtual ChatHistory History { get; set; } = new ChatHistory();
-
 
         public virtual string StartSession()
         {
@@ -45,8 +39,16 @@ namespace MarinApp.Agents
             if (string.IsNullOrWhiteSpace(template)) throw new ArgumentNullException(nameof(template));
             if (data == null) throw new ArgumentNullException(nameof(data));
 
-            var t = Handlebars.Compile(template);
-            var result = t(data);
+            try
+            {
+                var t = Handlebars.Compile(template);
+                var result = t(data);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error compiling or applying Handlebars template in SetSystemMessage<T>.");
+                throw;
+            }
         }
 
         public virtual void SetSystemMessage(string message)
@@ -57,11 +59,19 @@ namespace MarinApp.Agents
 
         protected virtual void ResetHistory()
         {
-            History.Clear();
-            var sysPrompt = SystemPrompt;
-            if (string.IsNullOrEmpty(sysPrompt))
-                sysPrompt = "You are a helpful assistant.";
-            History.AddSystemMessage(sysPrompt);
+            try
+            {
+                History.Clear();
+                var sysPrompt = SystemPrompt;
+                if (string.IsNullOrEmpty(sysPrompt))
+                    sysPrompt = "You are a helpful assistant.";
+                History.AddSystemMessage(sysPrompt);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error resetting chat history in ResetHistory.");
+                throw;
+            }
         }
 
         public virtual async Task<AgentMessage> StreamMessageAsync<T>(
@@ -73,9 +83,17 @@ namespace MarinApp.Agents
         {
             if (string.IsNullOrWhiteSpace(template)) throw new ArgumentNullException(nameof(template));
             if (data == null) throw new ArgumentNullException(nameof(data));
-            var t = Handlebars.Compile(template);
-            string result = t(data);
-            return await StreamMessageAsync(result, executionSettings, onResponse, cancellationToken);
+            try
+            {
+                var t = Handlebars.Compile(template);
+                string result = t(data);
+                return await StreamMessageAsync(result, executionSettings, onResponse, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error compiling or applying Handlebars template in StreamMessageAsync<T>.");
+                throw;
+            }
         }
 
         public virtual async Task<AgentMessage> StreamMessageAsync(
@@ -86,13 +104,20 @@ namespace MarinApp.Agents
         {
             if (string.IsNullOrWhiteSpace(prompt)) throw new ArgumentNullException(nameof(prompt));
 
-            var content = new ChatMessageContent();
-            content.Role = AuthorRole.User;
-            content.Items.Add(new TextContent(prompt));
+            try
+            {
+                var content = new ChatMessageContent();
+                content.Role = AuthorRole.User;
+                content.Items.Add(new TextContent(prompt));
 
-            return await StreamMessageAsync(content, executionSettings, onResponse, cancellationToken);
+                return await StreamMessageAsync(content, executionSettings, onResponse, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error creating ChatMessageContent in StreamMessageAsync(string).");
+                throw;
+            }
         }
-
 
         public virtual async Task<AgentMessage> StreamMessageAsync(
             ChatMessageContent content,
@@ -160,10 +185,18 @@ namespace MarinApp.Agents
         {
             if (string.IsNullOrWhiteSpace(template)) throw new ArgumentNullException(nameof(template));
             if (data == null) throw new ArgumentNullException(nameof(data));
-            var t = Handlebars.Compile(template);
-            string result = t(data);
+            try
+            {
+                var t = Handlebars.Compile(template);
+                string result = t(data);
 
-            return await GetMessageAsync(result, executionSettings, onResponse, cancellationToken);
+                return await GetMessageAsync(result, executionSettings, onResponse, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error compiling or applying Handlebars template in GetMessageAsync<T>.");
+                throw;
+            }
         }
 
         public virtual async Task<AgentMessage> GetMessageAsync(
@@ -174,10 +207,18 @@ namespace MarinApp.Agents
         {
             if (string.IsNullOrWhiteSpace(prompt)) throw new ArgumentNullException(nameof(prompt));
 
-            var content = new ChatMessageContent();
-            content.Role = AuthorRole.User;
-            content.Items.Add(new TextContent(prompt));
-            return await GetMessageAsync(content, executionSettings, onResponse, cancellationToken);
+            try
+            {
+                var content = new ChatMessageContent();
+                content.Role = AuthorRole.User;
+                content.Items.Add(new TextContent(prompt));
+                return await GetMessageAsync(content, executionSettings, onResponse, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error creating ChatMessageContent in GetMessageAsync(string).");
+                throw;
+            }
         }
 
         public virtual async Task<AgentMessage> GetMessageAsync(
@@ -260,12 +301,9 @@ namespace MarinApp.Agents
             }
         }
 
-
-
         public override string ToString()
         {
             return $"{Name} ({Id}) - {Description}";
         }
-
     }
 }
