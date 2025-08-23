@@ -24,7 +24,6 @@ namespace MarinApp.Agents
             HistoryService = agentHistoryService ?? throw new ArgumentNullException(nameof(agentHistoryService));
             LoggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
             Logger = loggerFactory.CreateLogger(this.GetType().Name) ?? throw new ArgumentNullException(nameof(loggerFactory));
-            Logger.LogDebug("AgentBase constructed with Kernel: {KernelType}, HistoryService: {HistoryServiceType}", kernel.GetType().Name, agentHistoryService.GetType().Name);
         }
 
         /// <summary>
