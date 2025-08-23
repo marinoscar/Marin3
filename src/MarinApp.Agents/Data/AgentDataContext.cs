@@ -57,5 +57,28 @@ namespace MarinApp.Agents.Data
                 entity.HasIndex(e => new { e.SessionId, e.AgentId });
             });
         }
+
+        /// <summary>
+        /// Creates a new instance of <see cref="AgentDataContext"/> configured for PostgreSQL using the provided connection string.
+        /// </summary>
+        /// <param name="connectionString">The PostgreSQL connection string.</param>
+        /// <returns>A configured <see cref="AgentDataContext"/> instance.</returns>
+        public static AgentDataContext CreateNpgsql(string connectionString)
+        {
+            if (string.IsNullOrWhiteSpace(connectionString))
+                throw new ArgumentNullException(nameof(connectionString), "Connection string cannot be null or empty.");
+
+            var optionsBuilder = new DbContextOptionsBuilder<AgentDataContext>();
+            optionsBuilder.UseNpgsql(connectionString, npgsqlOptions =>
+            {
+                // Optional: Configure Npgsql-specific options here
+                npgsqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(10),
+                    errorCodesToAdd: null);
+            });
+
+            return new AgentDataContext(optionsBuilder.Options);
+        }
     }
 }
