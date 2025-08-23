@@ -6,6 +6,7 @@ namespace MarinApp.Agents.Data
         Task<AgentMessage> GetMessageByIdAsync(string messageId, CancellationToken cancellationToken = default);
         Task<List<AgentMessage>> GetMessagesByAgentAsync(string agentId, CancellationToken cancellationToken = default);
         Task<List<AgentMessage>> GetMessagesBySessionAsync(string sessionId, CancellationToken cancellationToken = default);
+        Task<List<AgentMessage>> GetMessagesBySessionAndAgentAsync(string sessionId, string agentId, CancellationToken cancellationToken = default)
         Task SaveMessageAsync(AgentMessage message, CancellationToken cancellationToken = default);
     }
 }

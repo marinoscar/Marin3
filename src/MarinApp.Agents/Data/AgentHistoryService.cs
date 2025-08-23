@@ -29,6 +29,15 @@ namespace MarinApp.Agents.Data
                                  .OrderBy(m => m.UtcCreatedAt)
                                  .ToListAsync(cancellationToken);
         }
+
+        public async Task<List<AgentMessage>> GetMessagesBySessionAndAgentAsync(string sessionId, string agentId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(sessionId)) throw new ArgumentNullException(nameof(sessionId));
+            return await _context.AgentMessages
+                                 .Where(m => m.SessionId == sessionId && m.AgentId == agentId)
+                                 .OrderBy(m => m.UtcCreatedAt)
+                                 .ToListAsync(cancellationToken);
+        }
         public async Task<List<AgentMessage>> GetMessagesByAgentAsync(string agentId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(agentId)) throw new ArgumentNullException(nameof(agentId));

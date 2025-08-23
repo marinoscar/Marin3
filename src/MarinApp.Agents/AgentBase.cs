@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using System.Text;
+using System.Text.Json;
 
 namespace MarinApp.Agents
 {
@@ -60,6 +61,36 @@ namespace MarinApp.Agents
             SessionId = sessionId;
             Logger.LogInformation("Session set. SessionId: {SessionId}", SessionId);
             return SessionId;
+        }
+
+        public virtual async Task RestoreSessionAsync(string sessionId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(sessionId))
+            {
+                Logger.LogError("RestoreSessionAsync called with null or whitespace sessionId.");
+                throw new ArgumentNullException(nameof(sessionId));
+            }
+            var messages = await HistoryService.GetMessagesBySessionAsync(sessionId, cancellationToken);
+            SetSession(sessionId);
+            foreach (var m in messages)
+            {
+                try
+                {
+                    var content = new ChatMessageContent
+                    {
+                        Role = Enum.Parse<AuthorRole>(m.Role, true),
+                        Content = m.Content,
+                        MimeType = m.MimeType,
+                        ModelId = m.ModelId,
+                        Metadata = string.IsNullOrWhiteSpace(m.Metadata) ? new Dictionary<string, object>() : JsonSerializer.Deserialize<Dictionary<string, object>>(m.Metadata) ?? new Dictionary<string, object>()
+                    };
+                    History.Add(content);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "Error deserializing message in RestoreSessionAsync. MessageId: {MessageId}", m.Id);
+                }
+            }
         }
 
         public virtual void SetSystemMessage<T>(string template, T data)
