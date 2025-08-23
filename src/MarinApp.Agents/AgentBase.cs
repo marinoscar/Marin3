@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using MarinApp.Agents.Data;
+using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 
@@ -22,7 +23,7 @@ namespace MarinApp.Agents
 
         protected ILogger Logger { get; private set; } = default!;
 
-        protected virtual async Task<ChatMessageContent> StreamMessageAsync(ChatMessageContent content, PromptExecutionSettings executionSettings, Action<StreamingChatMessageContent> onResponse, CancellationToken cancellationToken = default)
+        protected virtual async Task<AgentMessage> StreamMessageAsync(ChatMessageContent content, PromptExecutionSettings executionSettings, Action<StreamingChatMessageContent> onResponse, CancellationToken cancellationToken = default)
         {
             if(onResponse == null) throw new ArgumentNullException(nameof(onResponse));
 
@@ -36,10 +37,6 @@ namespace MarinApp.Agents
             var res = new ChatMessageContent();
             await foreach (var r in service.GetStreamingChatMessageContentsAsync(history, executionSettings, Kernel, cancellationToken))
             {
-                foreach (var i in r.Items)
-                {
-                    res.Items.Add(i);
-                }
                 onResponse(r);
             }
         }
@@ -51,7 +48,7 @@ namespace MarinApp.Agents
             {
                 content
             };
-            var response = await service.GetChatMessageContentAsync(history, executionSettings, Kernel, cancellationToken);
+            var response = await service.GetChatMessageContentAsync(history, executionSettings, Kernel, cancellationToken); 
         }
 
 
