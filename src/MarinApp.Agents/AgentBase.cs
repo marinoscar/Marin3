@@ -84,7 +84,7 @@ namespace MarinApp.Agents
         /// <summary>
         /// Gets the current chat history for the agent session.
         /// </summary>
-        public virtual ChatHistory History { get; protected set; } = new ChatHistory();
+        public virtual ChatHistory History { get; protected set; } = [];
 
         /// <summary>
         /// Gets the current system prompt used by the agent.
