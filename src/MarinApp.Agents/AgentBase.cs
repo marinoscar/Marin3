@@ -17,6 +17,8 @@ namespace MarinApp.Agents
             Logger.LogDebug("AgentBase constructed with Kernel: {KernelType}, HistoryService: {HistoryServiceType}", kernel.GetType().Name, agentHistoryService.GetType().Name);
         }
 
+        public event EventHandler<(ChatMessageContent MessageContent, AgentMessage AgentMessage)>? MessageCompleted;
+
         public string Id { get; set; } = default!;
         public string Name { get; set; } = default!;
         public string Description { get; set; } = default!;
@@ -348,10 +350,13 @@ namespace MarinApp.Agents
                 throw;
             }
         }
-
+        
         protected virtual void OnMessageCompleted(ChatMessageContent messageContent, AgentMessage agentMessage)
         {
             Logger.LogDebug("OnMessageCompleted called. MessageContent: {Content}, AgentMessageId: {AgentMessageId}", messageContent?.Content, agentMessage?.Id);
+            
+            MessageCompleted?.Invoke(this, (messageContent, agentMessage));
+
             // Override in derived classes to handle stream completion events.
         }
 
