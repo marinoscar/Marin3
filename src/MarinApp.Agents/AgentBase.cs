@@ -10,7 +10,7 @@ namespace MarinApp.Agents
     public class AgentBase
     {
 
-        public AgentBase(Kernel kernel, IAgentHistoryService agentHistoryService,  ILoggerFactory loggerFactory)
+        public AgentBase(Kernel kernel, IAgentHistoryService agentHistoryService, ILoggerFactory loggerFactory)
         {
             Kernel = kernel ?? throw new ArgumentNullException(nameof(kernel));
             HistoryService = agentHistoryService ?? throw new ArgumentNullException(nameof(agentHistoryService));
@@ -134,14 +134,8 @@ namespace MarinApp.Agents
                     Encoding = last.Encoding,
                 };
                 var agentResponse = AgentMessage.Create(SessionId, this, chatMesage);
-                try
-                {
-                    OnStreamCompleted(last, agentResponse);
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogError(ex, "Error in OnStreamCompleted.");
-                }
+                OnMessageCompleted(chatMesage, agentResponse);
+
                 await SaveMessageAsync(AgentMessage.Create(SessionId, this, content), agentResponse, cancellationToken);
                 return agentResponse;
             }
@@ -156,12 +150,6 @@ namespace MarinApp.Agents
                 throw;
             }
         }
-
-        protected virtual void OnStreamCompleted(StreamingChatMessageContent lastContent, AgentMessage agentMessage)
-        {
-            // Override in derived classes to handle stream completion events.
-        }
-
 
         public virtual async Task<AgentMessage> GetMessageAsync<T>(
             string template,
@@ -216,7 +204,7 @@ namespace MarinApp.Agents
                 {
                     Logger.LogError(ex, "Error in OnMessageCompleted.");
                 }
-                await SaveMessageAsync(AgentMessage.Create(SessionId,this, content), agentResponse, cancellationToken);
+                await SaveMessageAsync(AgentMessage.Create(SessionId, this, content), agentResponse, cancellationToken);
                 return agentResponse;
             }
             catch (OperationCanceledException)
@@ -241,6 +229,11 @@ namespace MarinApp.Agents
             // Override in derived classes to handle events before sending a message.
         }
 
+        protected virtual void OnMessageSaved(AgentMessage userMessage, AgentMessage agentResponse)
+        {
+            // Override in derived classes to handle events after saving messages.
+        }
+
         protected virtual async Task SaveMessageAsync(AgentMessage userMessage, AgentMessage agentResponse, CancellationToken cancellationToken = default)
         {
             try
@@ -252,6 +245,8 @@ namespace MarinApp.Agents
 
                 await HistoryService.SaveMessageAsync(userMessage, cancellationToken);
                 await HistoryService.SaveMessageAsync(agentResponse, cancellationToken);
+
+                OnMessageSaved(userMessage, agentResponse);
             }
             catch (OperationCanceledException)
             {
