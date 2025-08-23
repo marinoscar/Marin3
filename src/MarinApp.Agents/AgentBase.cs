@@ -64,29 +64,7 @@ namespace MarinApp.Agents
 
         public virtual void SetSystemMessage<T>(string template, T data)
         {
-            if (string.IsNullOrWhiteSpace(template))
-            {
-                Logger.LogError("SetSystemMessage<T> called with null or whitespace template.");
-                throw new ArgumentNullException(nameof(template));
-            }
-            if (data == null)
-            {
-                Logger.LogError("SetSystemMessage<T> called with null data.");
-                throw new ArgumentNullException(nameof(data));
-            }
-
-            try
-            {
-                Logger.LogDebug("Compiling Handlebars template in SetSystemMessage<T>.");
-                var t = Handlebars.Compile(template);
-                var result = t(data);
-                Logger.LogDebug("System message set using template. Result: {Result}", result);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Error compiling or applying Handlebars template in SetSystemMessage<T>.");
-                throw;
-            }
+            SetSystemMessage(ParseTemplate(template, data));
         }
 
         public virtual void SetSystemMessage(string message)
@@ -129,29 +107,7 @@ namespace MarinApp.Agents
             Action<StreamingChatMessageContent> onResponse,
             CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(template))
-            {
-                Logger.LogError("StreamMessageAsync<T> called with null or whitespace template.");
-                throw new ArgumentNullException(nameof(template));
-            }
-            if (data == null)
-            {
-                Logger.LogError("StreamMessageAsync<T> called with null data.");
-                throw new ArgumentNullException(nameof(data));
-            }
-            try
-            {
-                Logger.LogDebug("Compiling Handlebars template in StreamMessageAsync<T>.");
-                var t = Handlebars.Compile(template);
-                string result = t(data);
-                Logger.LogDebug("Streaming message with compiled template result: {Result}", result);
-                return await StreamMessageAsync(result, executionSettings, onResponse, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Error compiling or applying Handlebars template in StreamMessageAsync<T>.");
-                throw;
-            }
+            return await StreamMessageAsync(ParseTemplate(template, data), executionSettings, onResponse, cancellationToken);
         }
 
         public virtual async Task<AgentMessage> StreamMessageAsync(
@@ -252,43 +208,18 @@ namespace MarinApp.Agents
             }
         }
 
-        public virtual async Task<AgentMessage> GetMessageAsync<T>(
+        public virtual async Task<AgentMessage> SendMessageAsync<T>(
             string template,
             T data,
             PromptExecutionSettings executionSettings,
-            Action<StreamingChatMessageContent> onResponse,
             CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(template))
-            {
-                Logger.LogError("GetMessageAsync<T> called with null or whitespace template.");
-                throw new ArgumentNullException(nameof(template));
-            }
-            if (data == null)
-            {
-                Logger.LogError("GetMessageAsync<T> called with null data.");
-                throw new ArgumentNullException(nameof(data));
-            }
-            try
-            {
-                Logger.LogDebug("Compiling Handlebars template in GetMessageAsync<T>.");
-                var t = Handlebars.Compile(template);
-                string result = t(data);
-                Logger.LogDebug("Getting message with compiled template result: {Result}", result);
-
-                return await GetMessageAsync(result, executionSettings, onResponse, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Error compiling or applying Handlebars template in GetMessageAsync<T>.");
-                throw;
-            }
+            return await SendMessageAsync(ParseTemplate(template, data), executionSettings, cancellationToken);
         }
 
-        public virtual async Task<AgentMessage> GetMessageAsync(
+        public virtual async Task<AgentMessage> SendMessageAsync(
             string prompt,
             PromptExecutionSettings executionSettings,
-            Action<StreamingChatMessageContent> onResponse,
             CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(prompt))
@@ -303,7 +234,7 @@ namespace MarinApp.Agents
                 var content = new ChatMessageContent();
                 content.Role = AuthorRole.User;
                 content.Items.Add(new TextContent(prompt));
-                return await GetMessageAsync(content, executionSettings, onResponse, cancellationToken);
+                return await SendMessageAsync(content, executionSettings, onResponse, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -312,7 +243,7 @@ namespace MarinApp.Agents
             }
         }
 
-        public virtual async Task<AgentMessage> GetMessageAsync(
+        public virtual async Task<AgentMessage> SendMessageAsync(
               ChatMessageContent content,
               PromptExecutionSettings executionSettings,
               CancellationToken cancellationToken = default)
@@ -418,6 +349,34 @@ namespace MarinApp.Agents
             catch (Exception ex)
             {
                 Logger.LogError(ex, "Exception in SaveMessageAsync.");
+                throw;
+            }
+        }
+
+        protected virtual string ParseTemplate<T>(string template, T data)
+        {
+            if (string.IsNullOrWhiteSpace(template))
+            {
+                Logger.LogError("ParseTemplate called with null or whitespace template.");
+                throw new ArgumentNullException(nameof(template));
+            }
+            if (data == null)
+            {
+                Logger.LogError("ParseTemplate called with null data.");
+                throw new ArgumentNullException(nameof(data));
+            }
+
+            try
+            {
+                Logger.LogDebug("Compiling Handlebars template in ParseTemplate.");
+                var compiled = Handlebars.Compile(template);
+                var result = compiled(data);
+                Logger.LogDebug("Template parsed successfully. Result: {Result}", result);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error compiling or applying Handlebars template in ParseTemplate.");
                 throw;
             }
         }
