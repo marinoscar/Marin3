@@ -1,17 +1,9 @@
 ﻿using MarinApp.Agents.Data;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Polly;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MarinApp.Agents
 {
@@ -35,20 +27,43 @@ namespace MarinApp.Agents
             services.AddHttpClient("OpenAIWithRetry")
                 .AddPolicyHandler(GetRetryPolicy());
 
-            // Build service provider temporarily to get HttpClient
-            using var serviceProvider = services.BuildServiceProvider();
-            var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
-            var httpClient = httpClientFactory.CreateClient("OpenAIWithRetry");
+            Kernel kernel = null;
+            try
+            {
+                // Build service provider temporarily to get HttpClient
+                using var serviceProvider = services.BuildServiceProvider();
+                var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
+                var httpClient = httpClientFactory.CreateClient("OpenAIWithRetry");
 
-            builder.AddOpenAIChatCompletion(
-                modelId: GetModelName(),
-                apiKey: GetApiKey(),
-                httpClient: httpClient
-            );
+                Logger?.LogDebug("Creating OpenAI chat completion with model: {ModelName}", GetModelName());
 
-            builder.Services.AddLogging(c => c.AddDebug().SetMinimumLevel(LogLevel.Trace));
+                builder.AddOpenAIChatCompletion(
+                    modelId: GetModelName(),
+                    apiKey: GetApiKey(),
+                    httpClient: httpClient
+                );
 
-            return builder.Build();
+                builder.Services.AddLogging(c => c.AddDebug().SetMinimumLevel(LogLevel.Trace));
+
+                OnBuildingKernel(builder);
+
+                kernel = builder.Build();
+
+                Logger?.LogDebug("Kernel successfully built for OpenAIAgentBase.");
+            }
+            catch (Exception ex)
+            {
+                Logger?.LogError(ex, "Failed to initialize Kernel in OpenAIAgentBase: {Message}", ex.Message);
+                throw;
+            }
+
+            return kernel;
+        }
+
+        protected virtual void OnBuildingKernel(IKernelBuilder builder)
+        {
+            // Allow derived classes to customize the kernel builder if needed
+            Logger?.LogDebug("OnBuildingKernel called in OpenAIAgentBase.");
         }
 
         private IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
