@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace MarinApp.Agents.Data
@@ -21,6 +22,7 @@ namespace MarinApp.Agents.Data
 
         public static AgentMessage Create(string sessionId, AgentBase agent, ChatMessageContent content)
         {
+
             return new AgentMessage
             {
                 SessionId = sessionId ?? throw new ArgumentNullException(nameof(sessionId)),
@@ -30,7 +32,7 @@ namespace MarinApp.Agents.Data
                 Content = content.Content ?? throw new ArgumentNullException(nameof(content.Content)),
                 MimeType = content.MimeType ?? "text/markdown",
                 ModelId = content.ModelId ?? throw new ArgumentNullException(nameof(content.ModelId)),
-                Metadata = content.Metadata != null ? System.Text.Json.JsonSerializer.Serialize(content.Metadata) : "{}"
+                Metadata = content.Metadata != null ? JsonSerializer.Serialize(content.Metadata) : "{}"
             };
         }
         

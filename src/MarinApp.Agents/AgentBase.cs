@@ -8,9 +8,10 @@ namespace MarinApp.Agents
     public class AgentBase
     {
 
-        public AgentBase(Kernel kernel, ILoggerFactory loggerFactory)
+        public AgentBase(Kernel kernel, IAgentHistoryService agentHistoryService,  ILoggerFactory loggerFactory)
         {
             Kernel = kernel ?? throw new ArgumentNullException(nameof(kernel));
+            HistoryService = agentHistoryService ?? throw new ArgumentNullException(nameof(agentHistoryService));
             Logger = loggerFactory?.CreateLogger(this.GetType().Name) ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
@@ -22,11 +23,12 @@ namespace MarinApp.Agents
         public virtual Kernel Kernel { get; protected set; } = default!;
 
         protected ILogger Logger { get; private set; } = default!;
+        protected virtual IAgentHistoryService HistoryService { get; set; }
+        protected virtual ChatHistory History { get; set; } = new ChatHistory();
 
         protected virtual async Task<AgentMessage> StreamMessageAsync(ChatMessageContent content, PromptExecutionSettings executionSettings, Action<StreamingChatMessageContent> onResponse, CancellationToken cancellationToken = default)
         {
             if(onResponse == null) throw new ArgumentNullException(nameof(onResponse));
-
             var history = new ChatHistory
             {
                 content
