@@ -72,12 +72,6 @@ namespace MarinApp.Agents
         Task<AgentMessage> GetMessageAsync<T>(string template, T data, PromptExecutionSettings executionSettings, Action<StreamingChatMessageContent> onResponse, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Called before a message is sent to the agent.
-        /// </summary>
-        /// <param name="messageContent">The chat message content to be sent.</param>
-        void OnBeforeMessageSent(ChatMessageContent messageContent);
-
-        /// <summary>
         /// Sets the current session identifier and resets the chat history for the session.
         /// </summary>
         /// <param name="sessionId">The session identifier to set.</param>
