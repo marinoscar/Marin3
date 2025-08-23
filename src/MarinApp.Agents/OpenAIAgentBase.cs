@@ -137,7 +137,7 @@ namespace MarinApp.Agents
         /// <summary>
         /// Retrieves the OpenAI API key from environment variables or application configuration.
         /// <para>
-        /// Checks the "OPENAI_API_KEY" environment variable (process, user, and machine scopes) first,
+        /// Checks the "OPENAI_API_KEY", "OPENAI_KEY", "OPENAI_API" environment variable (process, user, and machine scopes) first,
         /// then falls back to the "OpenAI:ApiKey" setting in the application configuration.
         /// </para>
         /// </summary>
