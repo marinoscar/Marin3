@@ -42,7 +42,7 @@ namespace MarinApp.Agents
     /// </code>
     /// </example>
     /// </remarks>
-    public abstract class AgentBase
+    public abstract class AgentBase : IAgent
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="AgentBase"/> class.
