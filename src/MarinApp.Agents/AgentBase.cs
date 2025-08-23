@@ -31,8 +31,20 @@ namespace MarinApp.Agents
         public virtual string StartSession()
         {
             SessionId = Guid.NewGuid().ToString().Replace("-", "").ToUpperInvariant();
+            SetSession(SessionId);
+            return SessionId;
+        }
+
+        public virtual string SetSession(string sessionId)
+        {
+            if (string.IsNullOrWhiteSpace(sessionId))
+            {
+                Logger.LogError("SetSession called with null or whitespace sessionId.");
+                throw new ArgumentNullException(nameof(sessionId));
+            }
             History = new ChatHistory();
-            Logger.LogInformation("Session started. SessionId: {SessionId}", SessionId);
+            SessionId = sessionId;
+            Logger.LogInformation("Session set. SessionId: {SessionId}", SessionId);
             return SessionId;
         }
 
