@@ -21,12 +21,14 @@ namespace MarinApp.Agents
         public string Name { get; set; } = default!;
         public string Description { get; set; } = default!;
 
-        protected virtual string SystemPrompt { get; set; } = default!;
+        public virtual ChatHistory History { get; protected set; } = new ChatHistory();
+
+        public virtual string SystemPrompt { get; protected set; } = default!;
+
         protected virtual Kernel Kernel { get; set; } = default!;
         protected ILogger Logger { get; private set; } = default!;
         protected virtual IAgentHistoryService HistoryService { get; set; }
         protected virtual string SessionId { get; set; } = default!;
-        protected virtual ChatHistory History { get; set; } = new ChatHistory();
 
         public virtual string StartSession()
         {
