@@ -147,17 +147,24 @@ namespace MarinApp.Agents
         {
             var key = string.Empty;
             // Start with environment variable
-            key = Environment.GetEnvironmentVariable("OPENAI_API_KEY") ??
-                Environment.GetEnvironmentVariable("OPENAI_API_KEY", EnvironmentVariableTarget.User) ??
-                Environment.GetEnvironmentVariable("OPENAI_API_KEY", EnvironmentVariableTarget.Machine);
+            key = GetEnvValue("OPENAI_API_KEY") ??
+                GetEnvValue("OPENAI_KEY") ??
+                GetEnvValue("OPENAI_API");
 
             if (!string.IsNullOrWhiteSpace(key)) return key;
 
             // Then check app settings
             key = _configuration["OpenAI:ApiKey"];
             if (!string.IsNullOrEmpty(key)) return key;
-            
+
             throw new InvalidOperationException("OpenAI API key not found in environment variables or configuration.");
+        }
+
+        private string? GetEnvValue(string key)
+        {
+            return Environment.GetEnvironmentVariable(key, EnvironmentVariableTarget.Process) ??
+                Environment.GetEnvironmentVariable(key, EnvironmentVariableTarget.User) ??
+                Environment.GetEnvironmentVariable(key, EnvironmentVariableTarget.Machine);
         }
     }
 }
