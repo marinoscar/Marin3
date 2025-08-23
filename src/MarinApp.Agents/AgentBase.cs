@@ -8,9 +8,49 @@ using System.Text.Json;
 
 namespace MarinApp.Agents
 {
+    /// <summary>
+    /// Provides a base class for conversational agents that interact with users via chat, manage session history, and interface with a semantic kernel.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Usage:</b> Inherit from <see cref="AgentBase"/> to implement a custom agent. Override <see cref="InitializeKernel"/> to provide a configured <see cref="Kernel"/> instance.
+    /// </para>
+    /// <para>
+    /// <b>Session Management:</b> Use <see cref="StartSession"/> to begin a new session, or <see cref="SetSession"/> to resume an existing one. The <see cref="SessionId"/> property tracks the current session.
+    /// </para>
+    /// <para>
+    /// <b>Message Streaming and Sending:</b> Use <see cref="StreamMessageAsync"/> for streaming responses and <see cref="SendMessageAsync"/> for single-turn responses.
+    /// </para>
+    /// <para>
+    /// <b>History:</b> The <see cref="History"/> property contains the chat history for the current session. Use <see cref="RestoreHistoryAsync"/> to load previous messages.
+    /// </para>
+    /// <para>
+    /// <b>System Prompts:</b> Set the system prompt using <see cref="SetSystemMessage"/>. Templates can be parsed with <see cref="ParseTemplate{T}"/>.
+    /// </para>
+    /// <para>
+    /// <b>Events:</b> Subscribe to <see cref="MessageCompleted"/> to handle message completion events.
+    /// </para>
+    /// <example>
+    /// <code>
+    /// public class MyAgent : AgentBase
+    /// {
+    ///     protected override Kernel InitializeKernel()
+    ///     {
+    ///         // Configure and return a Kernel instance
+    ///     }
+    /// }
+    /// </code>
+    /// </example>
+    /// </remarks>
     public abstract class AgentBase
     {
-        
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AgentBase"/> class.
+        /// </summary>
+        /// <param name="agentHistoryService">The service for persisting and retrieving agent message history.</param>
+        /// <param name="loggerFactory">The logger factory for creating loggers.</param>
+        /// <exception cref="InvalidOperationException">Thrown if the kernel cannot be initialized.</exception>
+        /// <exception cref="ArgumentNullException">Thrown if required dependencies are null.</exception>
         public AgentBase(IAgentHistoryService agentHistoryService, ILoggerFactory loggerFactory)
         {
             Kernel = InitializeKernel() ?? throw new InvalidOperationException("Failed to initalize Kernel");
@@ -19,30 +59,74 @@ namespace MarinApp.Agents
             Logger = loggerFactory.CreateLogger(this.GetType().Name) ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
+        /// <summary>
+        /// When implemented in a derived class, initializes and returns the <see cref="Kernel"/> used for chat completion.
+        /// </summary>
+        /// <returns>The initialized <see cref="Kernel"/> instance.</returns>
         protected abstract Kernel InitializeKernel();
 
+        /// <summary>
+        /// Occurs when a message has been completed and processed by the agent.
+        /// </summary>
         public event EventHandler<(ChatMessageContent MessageContent, AgentMessage AgentMessage)>? MessageCompleted;
 
+        /// <summary>
+        /// Gets or sets the unique identifier for the agent.
+        /// </summary>
         public string Id { get; set; } = default!;
 
+        /// <summary>
+        /// Gets or sets the display name of the agent.
+        /// </summary>
         public string Name { get; set; } = default!;
 
+        /// <summary>
+        /// Gets or sets the description of the agent.
+        /// </summary>
         public string Description { get; set; } = default!;
 
+        /// <summary>
+        /// Gets the chat history for the current session.
+        /// </summary>
         public virtual ChatHistory History { get; protected set; } = [];
 
+        /// <summary>
+        /// Gets the current system prompt for the agent.
+        /// </summary>
         public virtual string SystemPrompt { get; protected set; } = default!;
 
+        /// <summary>
+        /// Gets the semantic kernel used for chat completion.
+        /// </summary>
         protected virtual Kernel Kernel { get; set; } = default!;
 
+        /// <summary>
+        /// Gets the logger for this agent.
+        /// </summary>
         protected ILogger Logger { get; private set; } = default!;
 
+        /// <summary>
+        /// Gets the logger factory.
+        /// </summary>
         protected ILoggerFactory LoggerFactory { get; private set; }
 
+        /// <summary>
+        /// Gets the service for managing agent message history.
+        /// </summary>
         protected virtual IAgentHistoryService HistoryService { get; set; }
 
+        /// <summary>
+        /// Gets the current session identifier.
+        /// </summary>
         protected virtual string SessionId { get; set; } = default!;
 
+        /// <summary>
+        /// Starts a new session and resets the chat history.
+        /// </summary>
+        /// <returns>The new session identifier.</returns>
+        /// <remarks>
+        /// This method generates a new session ID, resets the chat history, and sets the session context.
+        /// </remarks>
         public virtual string StartSession()
         {
             SessionId = Guid.NewGuid().ToString().Replace("-", "").ToUpperInvariant();
@@ -50,6 +134,12 @@ namespace MarinApp.Agents
             return SessionId;
         }
 
+        /// <summary>
+        /// Sets the current session to the specified session ID and resets the chat history.
+        /// </summary>
+        /// <param name="sessionId">The session identifier to set.</param>
+        /// <returns>The session identifier that was set.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="sessionId"/> is null or whitespace.</exception>
         public virtual string SetSession(string sessionId)
         {
             if (string.IsNullOrWhiteSpace(sessionId))
@@ -63,14 +153,24 @@ namespace MarinApp.Agents
             return SessionId;
         }
 
-        public virtual async Task RestoreSessionAsync(string sessionId, CancellationToken cancellationToken = default)
+        /// <summary>
+        /// Restores the chat history for the specified session from persistent storage.
+        /// </summary>
+        /// <param name="sessionId">The session identifier to restore.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="sessionId"/> is null or whitespace.</exception>
+        /// <remarks>
+        /// This method loads all messages for the given session and agent, and populates the <see cref="History"/> property.
+        /// </remarks>
+        public virtual async Task RestoreHistoryAsync(string sessionId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(sessionId))
             {
                 Logger.LogError("RestoreSessionAsync called with null or whitespace sessionId.");
                 throw new ArgumentNullException(nameof(sessionId));
             }
-            var messages = await HistoryService.GetMessagesBySessionAsync(sessionId, cancellationToken);
+            var messages = await HistoryService.GetMessagesBySessionAndAgentAsync(sessionId, Id, cancellationToken);
             SetSession(sessionId);
             foreach (var m in messages)
             {
@@ -93,11 +193,25 @@ namespace MarinApp.Agents
             }
         }
 
+        /// <summary>
+        /// Sets the system prompt using a Handlebars template and data model.
+        /// </summary>
+        /// <typeparam name="T">The type of the data model.</typeparam>
+        /// <param name="template">The Handlebars template string.</param>
+        /// <param name="data">The data model to apply to the template.</param>
+        /// <remarks>
+        /// This method compiles the template and applies the data to generate the system prompt.
+        /// </remarks>
         public virtual void SetSystemMessage<T>(string template, T data)
         {
             SetSystemMessage(ParseTemplate(template, data));
         }
 
+        /// <summary>
+        /// Sets the system prompt to the specified message.
+        /// </summary>
+        /// <param name="message">The system prompt message.</param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="message"/> is null or whitespace.</exception>
         public virtual void SetSystemMessage(string message)
         {
             if (string.IsNullOrWhiteSpace(message))
@@ -109,6 +223,12 @@ namespace MarinApp.Agents
             SystemPrompt = message;
         }
 
+        /// <summary>
+        /// Resets the chat history and adds the current system prompt as the first message.
+        /// </summary>
+        /// <remarks>
+        /// If <see cref="SystemPrompt"/> is empty, a default prompt is used.
+        /// </remarks>
         protected virtual void ResetHistory()
         {
             try
@@ -131,6 +251,22 @@ namespace MarinApp.Agents
             }
         }
 
+        /// <summary>
+        /// Streams a message to the agent using a template and data, invoking a callback for each streaming response chunk.
+        /// </summary>
+        /// <typeparam name="T">The type of the data model.</typeparam>
+        /// <param name="template">The Handlebars template string.</param>
+        /// <param name="data">The data model to apply to the template.</param>
+        /// <param name="executionSettings">Prompt execution settings.</param>
+        /// <param name="onResponse">Callback invoked for each streaming response chunk.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>The final <see cref="AgentMessage"/> response.</returns>
+        /// <remarks>
+        /// <b>Example:</b>
+        /// <code>
+        /// await agent.StreamMessageAsync("Hello, {{name}}!", new { name = "Alice" }, settings, chunk => Console.WriteLine(chunk.Content));
+        /// </code>
+        /// </remarks>
         public virtual async Task<AgentMessage> StreamMessageAsync<T>(
             string template,
             T data,
@@ -141,6 +277,15 @@ namespace MarinApp.Agents
             return await StreamMessageAsync(ParseTemplate(template, data), executionSettings, onResponse, cancellationToken);
         }
 
+        /// <summary>
+        /// Streams a message to the agent using a prompt string, invoking a callback for each streaming response chunk.
+        /// </summary>
+        /// <param name="prompt">The prompt string.</param>
+        /// <param name="executionSettings">Prompt execution settings.</param>
+        /// <param name="onResponse">Callback invoked for each streaming response chunk.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>The final <see cref="AgentMessage"/> response.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="prompt"/> is null or whitespace.</exception>
         public virtual async Task<AgentMessage> StreamMessageAsync(
             string prompt,
             PromptExecutionSettings executionSettings,
@@ -169,6 +314,19 @@ namespace MarinApp.Agents
             }
         }
 
+        /// <summary>
+        /// Streams a message to the agent using a <see cref="ChatMessageContent"/> object, invoking a callback for each streaming response chunk.
+        /// </summary>
+        /// <param name="content">The user message content.</param>
+        /// <param name="executionSettings">Prompt execution settings.</param>
+        /// <param name="onResponse">Callback invoked for each streaming response chunk.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>The final <see cref="AgentMessage"/> response.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="onResponse"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if <see cref="SessionId"/> is not set.</exception>
+        /// <remarks>
+        /// This method adds the user message to history, streams the response, and saves both user and agent messages.
+        /// </remarks>
         public virtual async Task<AgentMessage> StreamMessageAsync(
             ChatMessageContent content,
             PromptExecutionSettings executionSettings,
@@ -239,6 +397,21 @@ namespace MarinApp.Agents
             }
         }
 
+        /// <summary>
+        /// Sends a message to the agent using a template and data, returning the agent's response.
+        /// </summary>
+        /// <typeparam name="T">The type of the data model.</typeparam>
+        /// <param name="template">The Handlebars template string.</param>
+        /// <param name="data">The data model to apply to the template.</param>
+        /// <param name="executionSettings">Prompt execution settings.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>The <see cref="AgentMessage"/> response.</returns>
+        /// <remarks>
+        /// <b>Example:</b>
+        /// <code>
+        /// var response = await agent.SendMessageAsync("Hello, {{name}}!", new { name = "Alice" }, settings);
+        /// </code>
+        /// </remarks>
         public virtual async Task<AgentMessage> SendMessageAsync<T>(
             string template,
             T data,
@@ -248,6 +421,14 @@ namespace MarinApp.Agents
             return await SendMessageAsync(ParseTemplate(template, data), executionSettings, cancellationToken);
         }
 
+        /// <summary>
+        /// Sends a message to the agent using a prompt string, returning the agent's response.
+        /// </summary>
+        /// <param name="prompt">The prompt string.</param>
+        /// <param name="executionSettings">Prompt execution settings.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>The <see cref="AgentMessage"/> response.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="prompt"/> is null or whitespace.</exception>
         public virtual async Task<AgentMessage> SendMessageAsync(
             string prompt,
             PromptExecutionSettings executionSettings,
@@ -265,7 +446,7 @@ namespace MarinApp.Agents
                 var content = new ChatMessageContent();
                 content.Role = AuthorRole.User;
                 content.Items.Add(new TextContent(prompt));
-                return await SendMessageAsync(content, executionSettings, onResponse, cancellationToken);
+                return await SendMessageAsync(content, executionSettings, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -274,6 +455,17 @@ namespace MarinApp.Agents
             }
         }
 
+        /// <summary>
+        /// Sends a message to the agent using a <see cref="ChatMessageContent"/> object, returning the agent's response.
+        /// </summary>
+        /// <param name="content">The user message content.</param>
+        /// <param name="executionSettings">Prompt execution settings.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>The <see cref="AgentMessage"/> response.</returns>
+        /// <exception cref="InvalidOperationException">Thrown if <see cref="SessionId"/> is not set.</exception>
+        /// <remarks>
+        /// This method adds the user message to history, sends the message, and saves both user and agent messages.
+        /// </remarks>
         public virtual async Task<AgentMessage> SendMessageAsync(
               ChatMessageContent content,
               PromptExecutionSettings executionSettings,
@@ -322,6 +514,14 @@ namespace MarinApp.Agents
             }
         }
 
+        /// <summary>
+        /// Called when a message has been completed and processed by the agent.
+        /// </summary>
+        /// <param name="messageContent">The chat message content.</param>
+        /// <param name="agentMessage">The agent message entity.</param>
+        /// <remarks>
+        /// Override this method in derived classes to handle message completion events.
+        /// </remarks>
         protected virtual void OnMessageCompleted(ChatMessageContent messageContent, AgentMessage agentMessage)
         {
             Logger.LogDebug("OnMessageCompleted called. MessageContent: {Content}, AgentMessageId: {AgentMessageId}", messageContent?.Content, agentMessage?.Id);
@@ -331,18 +531,45 @@ namespace MarinApp.Agents
             // Override in derived classes to handle stream completion events.
         }
 
+        /// <summary>
+        /// Called before a message is sent to the agent.
+        /// </summary>
+        /// <param name="messageContent">The chat message content.</param>
+        /// <remarks>
+        /// Override this method in derived classes to handle events before sending a message.
+        /// </remarks>
         public virtual void OnBeforeMessageSent(ChatMessageContent messageContent)
         {
             Logger.LogDebug("OnBeforeMessageSent called. MessageContent: {Content}", messageContent?.Content);
             // Override in derived classes to handle events before sending a message.
         }
 
+        /// <summary>
+        /// Called after user and agent messages have been saved.
+        /// </summary>
+        /// <param name="userMessage">The user message entity.</param>
+        /// <param name="agentResponse">The agent response entity.</param>
+        /// <remarks>
+        /// Override this method in derived classes to handle events after saving messages.
+        /// </remarks>
         protected virtual void OnMessageSaved(AgentMessage userMessage, AgentMessage agentResponse)
         {
             Logger.LogDebug("OnMessageSaved called. UserMessageId: {UserMessageId}, AgentResponseId: {AgentResponseId}", userMessage?.Id, agentResponse?.Id);
             // Override in derived classes to handle events after saving messages.
         }
 
+        /// <summary>
+        /// Saves the user and agent messages to persistent storage.
+        /// </summary>
+        /// <param name="userMessage">The user message entity.</param>
+        /// <param name="agentResponse">The agent response entity.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="userMessage"/> or <paramref name="agentResponse"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if <see cref="SessionId"/> is not set.</exception>
+        /// <remarks>
+        /// This method saves both the user and agent messages and then calls <see cref="OnMessageSaved"/>.
+        /// </remarks>
         protected virtual async Task SaveMessageAsync(AgentMessage userMessage, AgentMessage agentResponse, CancellationToken cancellationToken = default)
         {
             try
@@ -384,6 +611,21 @@ namespace MarinApp.Agents
             }
         }
 
+        /// <summary>
+        /// Parses a Handlebars template with the specified data model.
+        /// </summary>
+        /// <typeparam name="T">The type of the data model.</typeparam>
+        /// <param name="template">The Handlebars template string.</param>
+        /// <param name="data">The data model to apply to the template.</param>
+        /// <returns>The parsed template string.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="template"/> or <paramref name="data"/> is null or whitespace.</exception>
+        /// <remarks>
+        /// <b>Example:</b>
+        /// <code>
+        /// var result = agent.ParseTemplate("Hello, {{name}}!", new { name = "Alice" });
+        /// // result: "Hello, Alice!"
+        /// </code>
+        /// </remarks>
         protected virtual string ParseTemplate<T>(string template, T data)
         {
             if (string.IsNullOrWhiteSpace(template))
@@ -412,6 +654,30 @@ namespace MarinApp.Agents
             }
         }
 
+        /// <summary>
+        /// Sets the agent's identifying details.
+        /// </summary>
+        /// <param name="id">The unique identifier for the agent.</param>
+        /// <param name="name">The display name of the agent. If null or whitespace, <paramref name="id"/> is used.</param>
+        /// <param name="description">The description of the agent.</param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="id"/> is null or whitespace.</exception>
+        protected virtual void SetAgentDetails(string id, string name = default!, string description = default!)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                Logger.LogError("SetAgentDetails called with null or whitespace id.");
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            Id = id;
+            Name = string.IsNullOrWhiteSpace(name) ? id : name;
+            Description = description ?? string.Empty;
+        }
+
+        /// <summary>
+        /// Returns a string representation of the agent, including its name, ID, and description.
+        /// </summary>
+        /// <returns>A string describing the agent.</returns>
         public override string ToString()
         {
             Logger.LogDebug("ToString called for AgentBase.");
