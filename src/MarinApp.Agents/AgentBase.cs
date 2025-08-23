@@ -22,7 +22,8 @@ namespace MarinApp.Agents
         {
             Kernel = InitializeKernel() ?? throw new InvalidOperationException("Failed to initalize Kernel");
             HistoryService = agentHistoryService ?? throw new ArgumentNullException(nameof(agentHistoryService));
-            Logger = loggerFactory?.CreateLogger(this.GetType().Name) ?? throw new ArgumentNullException(nameof(loggerFactory));
+            LoggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
+            Logger = loggerFactory.CreateLogger(this.GetType().Name) ?? throw new ArgumentNullException(nameof(loggerFactory));
             Logger.LogDebug("AgentBase constructed with Kernel: {KernelType}, HistoryService: {HistoryServiceType}", kernel.GetType().Name, agentHistoryService.GetType().Name);
         }
 
@@ -100,6 +101,11 @@ namespace MarinApp.Agents
         /// Gets the logger instance for this agent.
         /// </summary>
         protected ILogger Logger { get; private set; } = default!;
+
+        /// <summary>
+        /// Gets the logger factory used to create loggers for this agent.
+        /// </summary>
+        protected ILoggerFactory LoggerFactory { get; private set; }
 
         /// <summary>
         /// Gets the history service used for persisting and retrieving agent messages.
