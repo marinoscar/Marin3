@@ -13,7 +13,7 @@ namespace MarinApp.Agents
     /// </summary>
     /// <remarks>
     /// <para>
-    /// <b>Usage:</b> Inherit from <see cref="AgentBase"/> to implement a custom agent. Override <see cref="InitializeKernel"/> to provide a configured <see cref="Kernel"/> instance.
+    /// <b>Usage:</b> Inherit from <see cref="KernelAgentBase"/> to implement a custom agent. Override <see cref="InitializeKernel"/> to provide a configured <see cref="Kernel"/> instance.
     /// </para>
     /// <para>
     /// <b>Session Management:</b> Use <see cref="StartSession"/> to begin a new session, or <see cref="SetSession"/> to resume an existing one. The <see cref="SessionId"/> property tracks the current session.
@@ -42,16 +42,16 @@ namespace MarinApp.Agents
     /// </code>
     /// </example>
     /// </remarks>
-    public abstract class AgentBase : IAgent
+    public abstract class KernelAgentBase : AgentBaseCore, IAgent
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="AgentBase"/> class.
+        /// Initializes a new instance of the <see cref="KernelAgentBase"/> class.
         /// </summary>
         /// <param name="agentHistoryService">The service for persisting and retrieving agent message history.</param>
         /// <param name="loggerFactory">The logger factory for creating loggers.</param>
         /// <exception cref="InvalidOperationException">Thrown if the kernel cannot be initialized.</exception>
         /// <exception cref="ArgumentNullException">Thrown if required dependencies are null.</exception>
-        public AgentBase(IAgentHistoryService agentHistoryService, ILoggerFactory loggerFactory)
+        public KernelAgentBase(IAgentHistoryService agentHistoryService, ILoggerFactory loggerFactory) : base(agentHistoryService, loggerFactory)
         {
             Kernel = InitializeKernel() ?? throw new InvalidOperationException("Failed to initalize Kernel");
             HistoryService = agentHistoryService ?? throw new ArgumentNullException(nameof(agentHistoryService));

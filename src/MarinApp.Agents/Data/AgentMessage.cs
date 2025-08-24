@@ -88,7 +88,7 @@ namespace MarinApp.Agents.Data
         /// <param name="agent">The agent generating the message.</param>
         /// <param name="content">The chat message content.</param>
         /// <returns>A new <see cref="AgentMessage"/> instance.</returns>
-        public static AgentMessage Create(string sessionId, AgentBase agent, ChatMessageContent content)
+        public static AgentMessage Create(string sessionId, KernelAgentBase agent, ChatMessageContent content)
         {
             var o = new JsonSerializerOptions
             {

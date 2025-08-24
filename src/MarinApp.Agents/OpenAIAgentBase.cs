@@ -35,7 +35,7 @@ namespace MarinApp.Agents
     /// </list>
     /// </para>
     /// </remarks>
-    public abstract class OpenAIAgentBase : AgentBase
+    public abstract class OpenAIAgentBase : KernelAgentBase
     {
         /// <summary>
         /// The application configuration instance used to resolve API keys and other settings.
