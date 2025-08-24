@@ -73,69 +73,6 @@ namespace MarinApp.Agents
         protected virtual Kernel Kernel { get; set; } = default!;
 
         /// <summary>
-        /// Streams a message to the agent using a template and data, invoking a callback for each streaming response chunk.
-        /// </summary>
-        /// <typeparam name="T">The type of the data model.</typeparam>
-        /// <param name="template">The Handlebars template string.</param>
-        /// <param name="data">The data model to apply to the template.</param>
-        /// <param name="executionSettings">Prompt execution settings.</param>
-        /// <param name="onResponse">Callback invoked for each streaming response chunk.</param>
-        /// <param name="cancellationToken">A cancellation token.</param>
-        /// <returns>The final <see cref="AgentMessage"/> response.</returns>
-        /// <remarks>
-        /// <b>Example:</b>
-        /// <code>
-        /// await agent.StreamMessageAsync("Hello, {{name}}!", new { name = "Alice" }, settings, chunk => Console.WriteLine(chunk.Content));
-        /// </code>
-        /// </remarks>
-        public override async Task<AgentMessage> StreamMessageAsync<T>(
-            string template,
-            T data,
-            PromptExecutionSettings executionSettings,
-            Action<StreamingChatMessageContent> onResponse,
-            CancellationToken cancellationToken = default)
-        {
-            return await StreamMessageAsync(ParseTemplate(template, data), executionSettings, onResponse, cancellationToken);
-        }
-
-        /// <summary>
-        /// Streams a message to the agent using a prompt string, invoking a callback for each streaming response chunk.
-        /// </summary>
-        /// <param name="prompt">The prompt string.</param>
-        /// <param name="executionSettings">Prompt execution settings.</param>
-        /// <param name="onResponse">Callback invoked for each streaming response chunk.</param>
-        /// <param name="cancellationToken">A cancellation token.</param>
-        /// <returns>The final <see cref="AgentMessage"/> response.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="prompt"/> is null or whitespace.</exception>
-        public override async Task<AgentMessage> StreamMessageAsync(
-            string prompt,
-            PromptExecutionSettings executionSettings,
-            Action<StreamingChatMessageContent> onResponse,
-            CancellationToken cancellationToken = default)
-        {
-            if (string.IsNullOrWhiteSpace(prompt))
-            {
-                Logger.LogError("StreamMessageAsync called with null or whitespace prompt.");
-                throw new ArgumentNullException(nameof(prompt));
-            }
-
-            try
-            {
-                Logger.LogDebug("Creating ChatMessageContent for streaming. Prompt: {Prompt}", prompt);
-                var content = new ChatMessageContent();
-                content.Role = AuthorRole.User;
-                content.Items.Add(new TextContent(prompt));
-
-                return await StreamMessageAsync(content, executionSettings, onResponse, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Error creating ChatMessageContent in StreamMessageAsync(string).");
-                throw;
-            }
-        }
-
-        /// <summary>
         /// Streams a message to the agent using a <see cref="ChatMessageContent"/> object, invoking a callback for each streaming response chunk.
         /// </summary>
         /// <param name="content">The user message content.</param>
@@ -218,63 +155,6 @@ namespace MarinApp.Agents
             }
         }
 
-        /// <summary>
-        /// Sends a message to the agent using a template and data, returning the agent's response.
-        /// </summary>
-        /// <typeparam name="T">The type of the data model.</typeparam>
-        /// <param name="template">The Handlebars template string.</param>
-        /// <param name="data">The data model to apply to the template.</param>
-        /// <param name="executionSettings">Prompt execution settings.</param>
-        /// <param name="cancellationToken">A cancellation token.</param>
-        /// <returns>The <see cref="AgentMessage"/> response.</returns>
-        /// <remarks>
-        /// <b>Example:</b>
-        /// <code>
-        /// var response = await agent.SendMessageAsync("Hello, {{name}}!", new { name = "Alice" }, settings);
-        /// </code>
-        /// </remarks>
-        public override async Task<AgentMessage> SendMessageAsync<T>(
-            string template,
-            T data,
-            PromptExecutionSettings executionSettings,
-            CancellationToken cancellationToken = default)
-        {
-            return await SendMessageAsync(ParseTemplate(template, data), executionSettings, cancellationToken);
-        }
-
-        /// <summary>
-        /// Sends a message to the agent using a prompt string, returning the agent's response.
-        /// </summary>
-        /// <param name="prompt">The prompt string.</param>
-        /// <param name="executionSettings">Prompt execution settings.</param>
-        /// <param name="cancellationToken">A cancellation token.</param>
-        /// <returns>The <see cref="AgentMessage"/> response.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="prompt"/> is null or whitespace.</exception>
-        public override async Task<AgentMessage> SendMessageAsync(
-            string prompt,
-            PromptExecutionSettings executionSettings,
-            CancellationToken cancellationToken = default)
-        {
-            if (string.IsNullOrWhiteSpace(prompt))
-            {
-                Logger.LogError("GetMessageAsync called with null or whitespace prompt.");
-                throw new ArgumentNullException(nameof(prompt));
-            }
-
-            try
-            {
-                Logger.LogDebug("Creating ChatMessageContent for GetMessageAsync. Prompt: {Prompt}", prompt);
-                var content = new ChatMessageContent();
-                content.Role = AuthorRole.User;
-                content.Items.Add(new TextContent(prompt));
-                return await SendMessageAsync(content, executionSettings, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Error creating ChatMessageContent in GetMessageAsync(string).");
-                throw;
-            }
-        }
 
         /// <summary>
         /// Sends a message to the agent using a <see cref="ChatMessageContent"/> object, returning the agent's response.
