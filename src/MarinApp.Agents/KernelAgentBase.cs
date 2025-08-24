@@ -138,6 +138,15 @@ namespace MarinApp.Agents
                 var agentResponse = AgentMessage.Create(SessionId, this, chatMesage);
                 OnMessageCompleted(chatMesage, agentResponse);
 
+                //try and get token count
+                var usage = chatMesage.TryGetUsage();
+                if(usage != null)
+                {
+                    agentResponse.InputTokens = usage.InputTokens;
+                    agentResponse.OutputTokens = usage.OutputTokens;
+                    agentResponse.TotalTokens = usage.TotalTokens;
+                }
+
                 Logger.LogDebug("Saving streamed user and agent messages.");
                 await SaveMessageAsync(AgentMessage.Create(SessionId, this, content), agentResponse, cancellationToken);
                 Logger.LogInformation("Streamed message saved successfully.");
