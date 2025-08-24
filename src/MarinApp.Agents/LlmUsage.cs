@@ -33,16 +33,6 @@ namespace MarinApp.Agents
     public class LlmUsage
     {
         /// <summary>
-        /// Gets the name of the LLM provider (e.g., "OpenAI", "Azure").
-        /// </summary>
-        public string Provider { get; init; } = "unknown";
-
-        /// <summary>
-        /// Gets the identifier of the LLM model used (e.g., "gpt-4").
-        /// </summary>
-        public string Model { get; init; } = "unknown";
-
-        /// <summary>
         /// Gets the number of tokens sent as input to the model.
         /// </summary>
         public int InputTokens { get; init; } = 0;
@@ -62,6 +52,6 @@ namespace MarinApp.Agents
         /// </summary>
         /// <returns>A formatted string with provider, input, output, and total tokens.</returns>
         public override string ToString()
-            => $"{Provider} | in:{InputTokens} out:{OutputTokens} total:{TotalTokens}";
+            => $"Tokens: in:{InputTokens} out:{OutputTokens} total:{TotalTokens}";
     }
 }
