@@ -12,10 +12,78 @@ using System.Threading.Tasks;
 
 namespace MarinApp.Agents
 {
+
+    /// <summary>
+    /// Provides an abstract base class for conversational agents that interact with users via chat, manage session history,
+    /// and interface with a semantic kernel for message completion and streaming.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Usage:</b> Inherit from <see cref="AgentBaseCore"/> to implement a custom agent. This class provides core functionality
+    /// for session management, chat history, system prompt templating, and message persistence. Derived classes must implement
+    /// the abstract methods for sending and streaming messages.
+    /// </para>
+    /// <para>
+    /// <b>Session Management:</b> Use <see cref="StartSession"/> to begin a new session, or <see cref="SetSession"/> to resume an existing one.
+    /// The <see cref="SessionId"/> property tracks the current session. <see cref="RestoreHistoryAsync"/> loads previous messages for a session.
+    /// </para>
+    /// <para>
+    /// <b>Message Handling:</b> Use <see cref="SendMessageAsync"/> for single-turn responses and <see cref="StreamMessageAsync"/> for streaming responses.
+    /// Both methods support sending messages as plain text, templates with data, or <see cref="ChatMessageContent"/> objects.
+    /// </para>
+    /// <para>
+    /// <b>System Prompts:</b> Set the system prompt using <see cref="SetSystemMessage"/> or <see cref="SetSystemMessage{T}"/> for templated prompts.
+    /// The <see cref="ParseTemplate{T}"/> method uses Handlebars.NET to apply data models to prompt templates.
+    /// </para>
+    /// <para>
+    /// <b>History:</b> The <see cref="History"/> property contains the chat history for the current session. Use <see cref="RestoreHistoryAsync"/>
+    /// to load previous messages. The <see cref="ResetHistory"/> method clears history and adds the current system prompt as the first message.
+    /// </para>
+    /// <para>
+    /// <b>Persistence:</b> The <see cref="SaveMessageAsync"/> method saves user and agent messages to persistent storage using the
+    /// <see cref="IAgentHistoryService"/> dependency.
+    /// </para>
+    /// <para>
+    /// <b>Events:</b> Subscribe to <see cref="MessageCompleted"/> to handle message completion events, which provide both the message content
+    /// and the persisted <see cref="AgentMessage"/> entity.
+    /// </para>
+    /// <example>
+    /// <code>
+    /// public class MyAgent : AgentBaseCore
+    /// {
+    ///     public MyAgent(IAgentHistoryService historyService, ILoggerFactory loggerFactory)
+    ///         : base(historyService, loggerFactory) { }
+    ///
+    ///     public override Task&lt;AgentMessage&gt; SendMessageAsync(ChatMessageContent content, PromptExecutionSettings executionSettings, CancellationToken cancellationToken = default)
+    ///     {
+    ///         // Implement message handling logic
+    ///     }
+    ///
+    ///     // Implement other abstract methods...
+    /// }
+    /// </code>
+    /// </example>
+    /// </remarks>
     public abstract class AgentBaseCore : IAgent
     {
-
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AgentBaseCore"/> class.
+        /// </summary>
+        /// <param name="agentHistoryService">
+        /// The service responsible for persisting and retrieving agent message history.
+        /// This service is required for managing chat history across sessions and agents.
+        /// </param>
+        /// <param name="loggerFactory">
+        /// The logger factory used to create loggers for this agent instance.
+        /// This enables structured logging for diagnostics and monitoring.
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        /// Thrown if <paramref name="agentHistoryService"/> or <paramref name="loggerFactory"/> is <c>null</c>.
+        /// </exception>
+        /// <remarks>
+        /// This constructor sets up the core dependencies for the agent, including history management and logging.
+        /// It creates a logger instance specific to the derived agent type for contextual logging.
+        /// </remarks>
         public AgentBaseCore(IAgentHistoryService agentHistoryService, ILoggerFactory loggerFactory)
         {
             HistoryService = agentHistoryService ?? throw new ArgumentNullException(nameof(agentHistoryService));
