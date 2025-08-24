@@ -82,6 +82,27 @@ namespace MarinApp.Agents.Data
         public string Metadata { get; set; } = "{}";
 
         /// <summary>
+        /// Gets or sets the number of input tokens used to generate the message.
+        /// </summary>
+        [Required]
+        [Display(Name = "Input Tokens", Description = "The number of tokens in the input that generated the message.")]
+        public int InputTokens { get; set; }
+
+        /// <summary>
+        /// Gets or sets the number of output tokens generated in the message.
+        /// </summary>
+        [Required]
+        [Display(Name = "Output Tokens", Description = "The number of tokens generated in the output message.")]
+        public int OutputTokens { get; set; }
+
+        /// <summary>
+        /// Gets or sets the total number of tokens (input + output) used for the message.
+        /// </summary>
+        [Required]
+        [Display(Name = "Total Tokens", Description = "The total number of tokens used for the message (input + output).")]
+        public int TotalTokens { get; set; }
+
+        /// <summary>
         /// Creates a new instance of <see cref="AgentMessage"/> using the specified session ID, agent, and content.
         /// </summary>
         /// <param name="sessionId">The session identifier.</param>
