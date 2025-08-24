@@ -233,6 +233,135 @@ namespace MarinApp.Agents
             }
         }
 
+        /// <summary>
+        /// Called when a message has been completed and processed by the agent.
+        /// </summary>
+        /// <param name="messageContent">The chat message content.</param>
+        /// <param name="agentMessage">The agent message entity.</param>
+        /// <remarks>
+        /// Override this method in derived classes to handle message completion events.
+        /// </remarks>
+        protected virtual void OnMessageCompleted(ChatMessageContent messageContent, AgentMessage agentMessage)
+        {
+            Logger.LogDebug("OnMessageCompleted called. MessageContent: {Content}, AgentMessageId: {AgentMessageId}", messageContent?.Content, agentMessage?.Id);
+
+            MessageCompleted?.Invoke(this, (messageContent, agentMessage));
+
+            // Override in derived classes to handle stream completion events.
+        }
+
+        /// <summary>
+        /// Called before a message is sent to the agent.
+        /// </summary>
+        /// <param name="messageContent">The chat message content.</param>
+        /// <remarks>
+        /// Override this method in derived classes to handle events before sending a message.
+        /// </remarks>
+        public virtual void OnBeforeMessageSent(ChatMessageContent messageContent)
+        {
+            Logger.LogDebug("OnBeforeMessageSent called. MessageContent: {Content}", messageContent?.Content);
+            // Override in derived classes to handle events before sending a message.
+        }
+
+        /// <summary>
+        /// Called after user and agent messages have been saved.
+        /// </summary>
+        /// <param name="userMessage">The user message entity.</param>
+        /// <param name="agentResponse">The agent response entity.</param>
+        /// <remarks>
+        /// Override this method in derived classes to handle events after saving messages.
+        /// </remarks>
+        protected virtual void OnMessageSaved(AgentMessage userMessage, AgentMessage agentResponse)
+        {
+            Logger.LogDebug("OnMessageSaved called. UserMessageId: {UserMessageId}, AgentResponseId: {AgentResponseId}", userMessage?.Id, agentResponse?.Id);
+            // Override in derived classes to handle events after saving messages.
+        }
+
+        /// <summary>
+        /// Saves the user and agent messages to persistent storage.
+        /// </summary>
+        /// <param name="userMessage">The user message entity.</param>
+        /// <param name="agentResponse">The agent response entity.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="userMessage"/> or <paramref name="agentResponse"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if <see cref="SessionId"/> is not set.</exception>
+        /// <remarks>
+        /// This method saves both the user and agent messages and then calls <see cref="OnMessageSaved"/>.
+        /// </remarks>
+        protected virtual async Task SaveMessageAsync(AgentMessage userMessage, AgentMessage agentResponse, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                if (agentResponse == null)
+                {
+                    Logger.LogError("SaveMessageAsync called with null agentResponse.");
+                    throw new ArgumentNullException(nameof(agentResponse));
+                }
+                if (userMessage == null)
+                {
+                    Logger.LogError("SaveMessageAsync called with null userMessage.");
+                    throw new ArgumentNullException(nameof(userMessage));
+                }
+
+                if (string.IsNullOrWhiteSpace(SessionId))
+                {
+                    Logger.LogError("SaveMessageAsync called without a valid SessionId.");
+                    throw new InvalidOperationException("SessionId is not set. Please call StartSession() before saving messages.");
+                }
+
+                Logger.LogDebug("Saving user message. Id: {UserMessageId}", userMessage.Id);
+                await HistoryService.SaveMessageAsync(userMessage, cancellationToken);
+                Logger.LogDebug("Saving agent response message. Id: {AgentResponseId}", agentResponse.Id);
+                await HistoryService.SaveMessageAsync(agentResponse, cancellationToken);
+
+                Logger.LogDebug("Calling OnMessageSaved after saving messages.");
+                OnMessageSaved(userMessage, agentResponse);
+            }
+            catch (OperationCanceledException)
+            {
+                Logger.LogWarning("SaveMessageAsync was canceled.");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Exception in SaveMessageAsync.");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Sets the agent's identifying details.
+        /// </summary>
+        /// <param name="id">The unique identifier for the agent.</param>
+        /// <param name="name">The display name of the agent. If null or whitespace, <paramref name="id"/> is used.</param>
+        /// <param name="description">The description of the agent.</param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="id"/> is null or whitespace.</exception>
+        protected virtual void SetAgentDetails(string id, string name = default!, string description = default!)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                Logger.LogError("SetAgentDetails called with null or whitespace id.");
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            Id = id;
+            Name = string.IsNullOrWhiteSpace(name) ? id : name;
+            Description = description ?? string.Empty;
+        }
+
+        /// <summary>
+        /// Returns a string representation of the agent, including its name, ID, and description.
+        /// </summary>
+        /// <returns>A string describing the agent.</returns>
+        public override string ToString()
+        {
+            Logger.LogDebug("ToString called for AgentBase.");
+            return $"{Name} ({Id}) - {Description}";
+        }
+
+        #region Agent Interaction
+
         /// <inheritdoc />
         public abstract Task<AgentMessage> SendMessageAsync(ChatMessageContent content, PromptExecutionSettings executionSettings, CancellationToken cancellationToken = default);
 
@@ -251,5 +380,8 @@ namespace MarinApp.Agents
 
         /// <inheritdoc />
         public abstract Task<AgentMessage> StreamMessageAsync<T>(string template, T data, PromptExecutionSettings executionSettings, Action<StreamingChatMessageContent> onResponse, CancellationToken cancellationToken = default);
+
+        #endregion
+
     }
 }
