@@ -208,6 +208,16 @@ namespace MarinApp.Agents
                     Logger.LogError(ex, "Error in OnMessageCompleted.");
                 }
                 Logger.LogDebug("Saving user and agent messages for GetMessageAsync.");
+
+                //try and get token count
+                var usage = apiResponse.TryGetUsage();
+                if (usage != null)
+                {
+                    agentResponse.InputTokens = usage.InputTokens;
+                    agentResponse.OutputTokens = usage.OutputTokens;
+                    agentResponse.TotalTokens = usage.TotalTokens;
+                }
+
                 await SaveMessageAsync(AgentMessage.Create(SessionId, this, content), agentResponse, cancellationToken);
                 Logger.LogInformation("GetMessageAsync completed and messages saved.");
                 return agentResponse;
