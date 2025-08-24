@@ -19,7 +19,7 @@ namespace MarinApp.Agents
     /// </summary>
     /// <remarks>
     /// <para>
-    /// <b>Usage:</b> Inherit from <see cref="AgentBaseCore"/> to implement a custom agent. This class provides core functionality
+    /// <b>Usage:</b> Inherit from <see cref="AgentBase"/> to implement a custom agent. This class provides core functionality
     /// for session management, chat history, system prompt templating, and message persistence. Derived classes must implement
     /// the abstract methods for sending and streaming messages.
     /// </para>
@@ -64,10 +64,10 @@ namespace MarinApp.Agents
     /// </code>
     /// </example>
     /// </remarks>
-    public abstract class AgentBaseCore : IAgent
+    public abstract class AgentBase : IAgent
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="AgentBaseCore"/> class.
+        /// Initializes a new instance of the <see cref="AgentBase"/> class.
         /// </summary>
         /// <param name="agentHistoryService">
         /// The service responsible for persisting and retrieving agent message history.
@@ -84,7 +84,7 @@ namespace MarinApp.Agents
         /// This constructor sets up the core dependencies for the agent, including history management and logging.
         /// It creates a logger instance specific to the derived agent type for contextual logging.
         /// </remarks>
-        public AgentBaseCore(IAgentHistoryService agentHistoryService, ILoggerFactory loggerFactory)
+        public AgentBase(IAgentHistoryService agentHistoryService, ILoggerFactory loggerFactory)
         {
             HistoryService = agentHistoryService ?? throw new ArgumentNullException(nameof(agentHistoryService));
             LoggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
