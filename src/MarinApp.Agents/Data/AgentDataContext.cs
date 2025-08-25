@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace MarinApp.Agents.Data
 {
@@ -54,10 +56,8 @@ namespace MarinApp.Agents.Data
                       .HasMaxLength(64)
                       .HasDefaultValue("text/markdown");
                 entity.Property(e => e.ModelId)
-                      .IsRequired()
                       .HasMaxLength(64);
                 entity.Property(e => e.Metadata)
-                      .IsRequired()
                       .HasDefaultValue("{}");
                 entity.Property(e => e.UtcCreatedAt)
                       .IsRequired();
@@ -77,6 +77,7 @@ namespace MarinApp.Agents.Data
         /// schema updates, it applies any pending migrations to bring the database schema up to date.</remarks>
         public void InitializeDb()
         {
+            Database.EnsureCreated();
         }
 
         /// <summary>
@@ -126,7 +127,12 @@ namespace MarinApp.Agents.Data
         /// <returns>A configured <see cref="AgentDataContext"/> instance using an in-memory database.</returns>
         public static AgentDataContext CreateInMemory()
         {
-            return CreateSqlite("Data Source=:memory:");
+            var conn = new SqliteConnection("Data Source=:memory:");
+            var options = new DbContextOptionsBuilder<AgentDataContext>()
+                .UseSqlite(conn) // relational in-memory
+                .Options;
+            conn.Open(); // keep the connection open
+            return new AgentDataContext(options);
         }
     }
 
