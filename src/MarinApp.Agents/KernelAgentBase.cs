@@ -212,7 +212,7 @@ namespace MarinApp.Agents
 
                 OnBeforeMessageSent(content);
 
-                //Add user input
+                //Add user input to the history collection
                 var userMessage = AgentMessage.Create(SessionId, this, content);
                 History.Add(new AgentItem()
                 {
@@ -222,7 +222,9 @@ namespace MarinApp.Agents
                 });
 
                 Logger.LogInformation("Requesting chat message content from service.");
+
                 var apiResponse = await service.GetChatMessageContentAsync(History.ChatHistory, executionSettings ?? DefaultExecutionSettings, Kernel, cancellationToken);
+
                 var agentResponse = AgentMessage.Create(SessionId, this, apiResponse);
                 try
                 {

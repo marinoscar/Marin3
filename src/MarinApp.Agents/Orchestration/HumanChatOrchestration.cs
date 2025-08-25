@@ -36,8 +36,6 @@ namespace MarinApp.Agents.Orchestration
 
                 //prints the response back to the user
                 HumanAgent.PrintAgentMessage(agentResponse.Content, agentResponse.MimeType);
-
-                //merge the history
                 
                 
             }
