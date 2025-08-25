@@ -31,6 +31,8 @@ namespace MarinApp.Agents.Orchestration
                 var humanResponse = HumanAgent.SendMessageAsync(initialMessage).GetAwaiter().GetResult();
                 var agentResponse = Agent.SendMessageAsync(humanResponse.Content).GetAwaiter().GetResult();
                 //merge the history
+                HumanAgent.History.MergeChatHistory(Agent.History);
+                if (endSequence(agentResponse)) return;
             }
 
         }
