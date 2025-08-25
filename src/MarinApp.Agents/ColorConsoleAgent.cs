@@ -86,7 +86,7 @@ namespace MarinApp.Agents
         /// <param name="text">The text to display.</param>
         protected void PrintAgentText(string text)
         {
-            PrintMessage(text, ConsoleColor.Cyan);
+            PrintConsoleMessage(text, ConsoleColor.Cyan);
         }
 
         /// <summary>
@@ -95,7 +95,7 @@ namespace MarinApp.Agents
         /// <param name="text">The text to display.</param>
         protected void PrintUserText(string text)
         {
-            PrintMessage(text, ConsoleColor.Green);
+            PrintConsoleMessage(text, ConsoleColor.Green);
         }
 
         /// <summary>
@@ -103,12 +103,18 @@ namespace MarinApp.Agents
         /// </summary>
         /// <param name="text">The text to display.</param>
         /// <param name="color">The color to use for the text.</param>
-        protected virtual void PrintMessage(string text, ConsoleColor color)
+        protected virtual void PrintConsoleMessage(string text, ConsoleColor color)
         {
             var previousColor = Console.ForegroundColor;
             Console.ForegroundColor = color;
             Console.WriteLine(text);
             Console.ForegroundColor = previousColor;
+        }
+
+        /// <inheritdoc/>
+        public override void PrintMessage(string content, string mimeType)
+        {
+            PrintUserText(content);
         }
     }
 }
