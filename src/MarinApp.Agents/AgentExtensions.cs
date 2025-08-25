@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace MarinApp.Agents
 {
-    public static class ChatMessageContentUsageExtensions
+    public static class AgentExtensions
     {
         /// <summary>
         /// Tries to extract token usage (input/output/total) from a ChatMessageContent
@@ -47,7 +47,7 @@ namespace MarinApp.Agents
             return null;
         }
 
-        // ---------- OpenAI helpers ----------
+        #region Private Helpers
 
         private static LlmUsage? FromOpenAIInnerContent(object? inner)
         {
@@ -86,8 +86,6 @@ namespace MarinApp.Agents
             }
             return null;
         }
-
-        // ---------- Generic / Mistral-like helpers ----------
 
         private static LlmUsage? FromGenericUsageObject(object usageObj)
         {
@@ -137,6 +135,9 @@ namespace MarinApp.Agents
 
         private static int? GetIntProp(Type t, object instance, string name)
             => t.GetProperty(name, BindingFlags.Public | BindingFlags.Instance)?.GetValue(instance) as int?;
+
+        #endregion
+
 
     }
 }
