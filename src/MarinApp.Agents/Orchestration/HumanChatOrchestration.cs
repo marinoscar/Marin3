@@ -29,6 +29,9 @@ namespace MarinApp.Agents.Orchestration
             while (true)
             {
                 var humanResponse = HumanAgent.SendMessageAsync(initialMessage).GetAwaiter().GetResult();
+
+                if (endSequence(humanResponse)) return;
+
                 var agentResponse = Agent.SendMessageAsync(humanResponse.Content).GetAwaiter().GetResult();
 
                 //prints the response back to the user
@@ -36,7 +39,7 @@ namespace MarinApp.Agents.Orchestration
 
                 //merge the history
                 
-                if (endSequence(agentResponse)) return;
+                
             }
 
         }

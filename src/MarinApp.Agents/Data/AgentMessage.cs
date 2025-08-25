@@ -70,7 +70,6 @@ namespace MarinApp.Agents.Data
         /// <summary>
         /// Gets or sets the model identifier used to generate the message.
         /// </summary>
-        [Required]
         [Display(Name = "Model Id", Description = "Identifier for the model that generated this message.")]
         public string? ModelId { get; set; } = default!;
 
