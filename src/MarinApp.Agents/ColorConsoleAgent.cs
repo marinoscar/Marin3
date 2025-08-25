@@ -1,5 +1,6 @@
 ﻿using MarinApp.Agents.Data;
 using Microsoft.Extensions.Logging;
+using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using System;
 using System.Collections.Generic;
@@ -30,6 +31,10 @@ namespace MarinApp.Agents
     /// </remarks>
     public class ColorConsoleAgent : HumanProxyBase
     {
+
+
+        private IDictionary<ChatMessageContent, bool> _store = new Dictionary<ChatMessageContent, bool>();
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ColorConsoleAgent"/> class.
         /// </summary>
@@ -56,6 +61,18 @@ namespace MarinApp.Agents
         {
             if (string.IsNullOrEmpty(agentText)) throw new ArgumentNullException(nameof(agentText));
 
+            foreach (var message in history)
+            {
+                if (_store.ContainsKey(message) && _store[message]) continue;
+
+                if(message.Role == AuthorRole.User)
+                    PrintUserText(message.Content ?? "Empty");
+                else
+                    PrintAgentText(message.Content ?? "Empty");
+
+                _store[message] = true;
+            }
+
             PrintAgentText(agentText);
 
             Console.Write("Your response: ");
@@ -69,8 +86,27 @@ namespace MarinApp.Agents
         /// <param name="text">The text to display.</param>
         protected void PrintAgentText(string text)
         {
+            PrintMessage(text, ConsoleColor.Cyan);
+        }
+
+        /// <summary>
+        /// Prints the user's text to the console in green color for emphasis.
+        /// </summary>
+        /// <param name="text">The text to display.</param>
+        protected void PrintUserText(string text)
+        {
+            PrintMessage(text, ConsoleColor.Green);
+        }
+
+        /// <summary>
+        /// Prints a message to the console in the specified color.
+        /// </summary>
+        /// <param name="text">The text to display.</param>
+        /// <param name="color">The color to use for the text.</param>
+        protected virtual void PrintMessage(string text, ConsoleColor color)
+        {
             var previousColor = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.ForegroundColor = color;
             Console.WriteLine(text);
             Console.ForegroundColor = previousColor;
         }
