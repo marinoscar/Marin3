@@ -452,7 +452,7 @@ namespace MarinApp.Agents
         public virtual async Task<AgentMessage> SendMessageAsync<T>(
             string template,
             T data,
-            PromptExecutionSettings executionSettings,
+            PromptExecutionSettings? executionSettings = default,
             CancellationToken cancellationToken = default)
         {
             return await SendMessageAsync(ParseTemplate(template, data), executionSettings, cancellationToken);
@@ -468,7 +468,7 @@ namespace MarinApp.Agents
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="prompt"/> is null or whitespace.</exception>
         public virtual async Task<AgentMessage> SendMessageAsync(
             string prompt,
-            PromptExecutionSettings executionSettings,
+            PromptExecutionSettings? executionSettings = default,
             CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(prompt))
@@ -498,8 +498,8 @@ namespace MarinApp.Agents
         /// <typeparam name="T">The type of the data model.</typeparam>
         /// <param name="template">The Handlebars template string.</param>
         /// <param name="data">The data model to apply to the template.</param>
-        /// <param name="executionSettings">Prompt execution settings.</param>
         /// <param name="onResponse">Callback invoked for each streaming response chunk.</param>
+        /// <param name="executionSettings">Prompt execution settings.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>The final <see cref="AgentMessage"/> response.</returns>
         /// <remarks>
@@ -511,26 +511,26 @@ namespace MarinApp.Agents
         public virtual async Task<AgentMessage> StreamMessageAsync<T>(
             string template,
             T data,
-            PromptExecutionSettings executionSettings,
             Action<StreamingChatMessageContent> onResponse,
+            PromptExecutionSettings? executionSettings = default,
             CancellationToken cancellationToken = default)
         {
-            return await StreamMessageAsync(ParseTemplate(template, data), executionSettings, onResponse, cancellationToken);
+            return await StreamMessageAsync(ParseTemplate(template, data), onResponse, executionSettings, cancellationToken);
         }
 
         /// <summary>
         /// Streams a message to the agent using a prompt string, invoking a callback for each streaming response chunk.
         /// </summary>
         /// <param name="prompt">The prompt string.</param>
-        /// <param name="executionSettings">Prompt execution settings.</param>
         /// <param name="onResponse">Callback invoked for each streaming response chunk.</param>
+        /// /// <param name="executionSettings">Prompt execution settings.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>The final <see cref="AgentMessage"/> response.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="prompt"/> is null or whitespace.</exception>
         public virtual async Task<AgentMessage> StreamMessageAsync(
             string prompt,
-            PromptExecutionSettings executionSettings,
             Action<StreamingChatMessageContent> onResponse,
+            PromptExecutionSettings? executionSettings = default,
             CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(prompt))
@@ -546,7 +546,7 @@ namespace MarinApp.Agents
                 content.Role = AuthorRole.User;
                 content.Items.Add(new TextContent(prompt));
 
-                return await StreamMessageAsync(content, executionSettings, onResponse, cancellationToken);
+                return await StreamMessageAsync(content, onResponse, executionSettings, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -558,10 +558,10 @@ namespace MarinApp.Agents
         #endregion
 
         /// <inheritdoc />
-        public abstract Task<AgentMessage> SendMessageAsync(ChatMessageContent content, PromptExecutionSettings executionSettings, CancellationToken cancellationToken = default);
+        public abstract Task<AgentMessage> SendMessageAsync(ChatMessageContent content, PromptExecutionSettings? executionSettings = default, CancellationToken cancellationToken = default);
 
         /// <inheritdoc />
-        public abstract Task<AgentMessage> StreamMessageAsync(ChatMessageContent content, PromptExecutionSettings executionSettings, Action<StreamingChatMessageContent> onResponse, CancellationToken cancellationToken = default);
+        public abstract Task<AgentMessage> StreamMessageAsync(ChatMessageContent content, Action<StreamingChatMessageContent> onResponse, PromptExecutionSettings? executionSettings, CancellationToken cancellationToken = default);
 
 
 

@@ -39,9 +39,9 @@ namespace MarinApp.Agents
             return "{}";
         }
 
-        public override Task<AgentMessage> StreamMessageAsync(ChatMessageContent content, PromptExecutionSettings executionSettings, Action<StreamingChatMessageContent> onResponse, CancellationToken cancellationToken = default)
+        public override Task<AgentMessage> StreamMessageAsync(ChatMessageContent content, Action<StreamingChatMessageContent> onResponse, PromptExecutionSettings? executionSettings = default, CancellationToken cancellationToken = default)
         {
-            return SendMessageAsync(content, executionSettings, cancellationToken);
+            return SendMessageAsync(content, executionSettings ?? DefaultExecutionSettings, cancellationToken);
         }
 
         public abstract Task<string> WaitOnHumanResponseAsync(string? agentText, ChatHistory history, CancellationToken cancellationToken);

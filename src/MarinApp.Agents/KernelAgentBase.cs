@@ -87,8 +87,8 @@ namespace MarinApp.Agents
         /// </remarks>
         public override async Task<AgentMessage> StreamMessageAsync(
             ChatMessageContent content,
-            PromptExecutionSettings executionSettings,
             Action<StreamingChatMessageContent> onResponse,
+            PromptExecutionSettings? executionSettings = default,
             CancellationToken cancellationToken = default)
         {
             try
@@ -110,7 +110,7 @@ namespace MarinApp.Agents
                 var sb = new StringBuilder();
                 StreamingChatMessageContent last = default!;
                 Logger.LogInformation("Starting streaming chat message contents.");
-                await foreach (var r in service.GetStreamingChatMessageContentsAsync(History, executionSettings, Kernel, cancellationToken))
+                await foreach (var r in service.GetStreamingChatMessageContentsAsync(History, executionSettings ?? DefaultExecutionSettings, Kernel, cancellationToken))
                 {
                     try
                     {
@@ -178,7 +178,7 @@ namespace MarinApp.Agents
         /// </remarks>
         public override async Task<AgentMessage> SendMessageAsync(
               ChatMessageContent content,
-              PromptExecutionSettings executionSettings,
+              PromptExecutionSettings? executionSettings = default,
               CancellationToken cancellationToken = default)
         {
             try

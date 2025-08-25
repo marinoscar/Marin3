@@ -84,7 +84,7 @@ namespace MarinApp.Agents
         /// <param name="executionSettings">Prompt execution settings.</param>
         /// <param name="cancellationToken">A cancellation token for the asynchronous operation.</param>
         /// <returns>The <see cref="AgentMessage"/> response.</returns>
-        Task<AgentMessage> SendMessageAsync(ChatMessageContent content, PromptExecutionSettings executionSettings, CancellationToken cancellationToken = default);
+        Task<AgentMessage> SendMessageAsync(ChatMessageContent content, PromptExecutionSettings? executionSettings = default, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Sends a message to the agent using a prompt string, returning the agent's response.
@@ -93,7 +93,7 @@ namespace MarinApp.Agents
         /// <param name="executionSettings">Prompt execution settings.</param>
         /// <param name="cancellationToken">A cancellation token for the asynchronous operation.</param>
         /// <returns>The <see cref="AgentMessage"/> response.</returns>
-        Task<AgentMessage> SendMessageAsync(string prompt, PromptExecutionSettings executionSettings, CancellationToken cancellationToken = default);
+        Task<AgentMessage> SendMessageAsync(string prompt, PromptExecutionSettings? executionSettings = default, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Sends a message to the agent using a Handlebars template and data, returning the agent's response.
@@ -104,7 +104,7 @@ namespace MarinApp.Agents
         /// <param name="executionSettings">Prompt execution settings.</param>
         /// <param name="cancellationToken">A cancellation token for the asynchronous operation.</param>
         /// <returns>The <see cref="AgentMessage"/> response.</returns>
-        Task<AgentMessage> SendMessageAsync<T>(string template, T data, PromptExecutionSettings executionSettings, CancellationToken cancellationToken = default);
+        Task<AgentMessage> SendMessageAsync<T>(string template, T data, PromptExecutionSettings? executionSettings = default, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Sets the current session to the specified session ID and resets the chat history.
@@ -141,7 +141,7 @@ namespace MarinApp.Agents
         /// <param name="onResponse">Callback invoked for each streaming response chunk.</param>
         /// <param name="cancellationToken">A cancellation token for the asynchronous operation.</param>
         /// <returns>The final <see cref="AgentMessage"/> response.</returns>
-        Task<AgentMessage> StreamMessageAsync(ChatMessageContent content, PromptExecutionSettings executionSettings, Action<StreamingChatMessageContent> onResponse, CancellationToken cancellationToken = default);
+        Task<AgentMessage> StreamMessageAsync(ChatMessageContent content, Action<StreamingChatMessageContent> onResponse, PromptExecutionSettings? executionSettings = default, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Streams a message to the agent using a prompt string, invoking a callback for each streaming response chunk.
@@ -151,7 +151,7 @@ namespace MarinApp.Agents
         /// <param name="onResponse">Callback invoked for each streaming response chunk.</param>
         /// <param name="cancellationToken">A cancellation token for the asynchronous operation.</param>
         /// <returns>The final <see cref="AgentMessage"/> response.</returns>
-        Task<AgentMessage> StreamMessageAsync(string prompt, PromptExecutionSettings executionSettings, Action<StreamingChatMessageContent> onResponse, CancellationToken cancellationToken = default);
+        Task<AgentMessage> StreamMessageAsync(string prompt, Action<StreamingChatMessageContent> onResponse, PromptExecutionSettings? executionSettings = default, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Streams a message to the agent using a Handlebars template and data, invoking a callback for each streaming response chunk.
@@ -163,6 +163,6 @@ namespace MarinApp.Agents
         /// <param name="onResponse">Callback invoked for each streaming response chunk.</param>
         /// <param name="cancellationToken">A cancellation token for the asynchronous operation.</param>
         /// <returns>The final <see cref="AgentMessage"/> response.</returns>
-        Task<AgentMessage> StreamMessageAsync<T>(string template, T data, PromptExecutionSettings executionSettings, Action<StreamingChatMessageContent> onResponse, CancellationToken cancellationToken = default);
+        Task<AgentMessage> StreamMessageAsync<T>(string template, T data, Action<StreamingChatMessageContent> onResponse, PromptExecutionSettings? executionSettings = default, CancellationToken cancellationToken = default);
     }
 }
