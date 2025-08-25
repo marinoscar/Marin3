@@ -11,9 +11,9 @@ Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-co
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarinApp.Expenses", "MarinApp.Expenses\MarinApp.Expenses.csproj", "{C01D65C8-4AB3-37A0-854E-843B8A9ED3F0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarinApp.Terminal", "MarinApp\MarinApp.Terminal\MarinApp.Terminal.csproj", "{7291F6B2-6E30-4455-B9EF-F73D9874CCEE}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarinApp.Agents", "MarinApp.Agents\MarinApp.Agents.csproj", "{8931045A-541C-476F-9429-19962DF8E6CE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarinApp.Terminal", "MarinApp.Terminal\MarinApp.Terminal.csproj", "{22FA33C3-D049-CE5B-4658-5F53D2BDC6FF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,14 +37,14 @@ Global
 		{C01D65C8-4AB3-37A0-854E-843B8A9ED3F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C01D65C8-4AB3-37A0-854E-843B8A9ED3F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C01D65C8-4AB3-37A0-854E-843B8A9ED3F0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7291F6B2-6E30-4455-B9EF-F73D9874CCEE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7291F6B2-6E30-4455-B9EF-F73D9874CCEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7291F6B2-6E30-4455-B9EF-F73D9874CCEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7291F6B2-6E30-4455-B9EF-F73D9874CCEE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8931045A-541C-476F-9429-19962DF8E6CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8931045A-541C-476F-9429-19962DF8E6CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8931045A-541C-476F-9429-19962DF8E6CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8931045A-541C-476F-9429-19962DF8E6CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{22FA33C3-D049-CE5B-4658-5F53D2BDC6FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{22FA33C3-D049-CE5B-4658-5F53D2BDC6FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{22FA33C3-D049-CE5B-4658-5F53D2BDC6FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{22FA33C3-D049-CE5B-4658-5F53D2BDC6FF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

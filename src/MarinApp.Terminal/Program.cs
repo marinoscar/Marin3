@@ -1,4 +1,5 @@
-﻿using MarinApp.Core.Configuration;
+﻿
+using MarinApp.Core.Configuration;
 using MarinApp.Core.Data;
 using MarinApp.Core.Extensions;
 using Microsoft.EntityFrameworkCore;
