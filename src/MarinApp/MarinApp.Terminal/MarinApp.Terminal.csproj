@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\MarinApp.Agents\MarinApp.Agents.csproj" />
     <ProjectReference Include="..\..\MarinApp.Core\MarinApp.Core.csproj" />
   </ItemGroup>
 

@@ -10,7 +10,7 @@ namespace MarinApp.Agents
 {
     
     ///<summary>
-    /// Provides an abstract base class for OpenAI-powered conversational agents.
+    /// Provides a class for OpenAI-powered conversational agents.
     /// <para>
     /// This class encapsulates the configuration and initialization of the Semantic Kernel with OpenAI chat completion support,
     /// including robust HTTP client retry policies, model selection, and API key management.
@@ -36,7 +36,7 @@ namespace MarinApp.Agents
     /// </list>
     /// </para>
     /// </remarks>
-    public abstract class OpenAIAgentBase : KernelAgentBase
+    public class OpenAIAgentBase : KernelAgentBase
     {
         /// <summary>
         /// The application configuration instance used to resolve API keys and other settings.
@@ -58,6 +58,11 @@ namespace MarinApp.Agents
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
+
+        /// <summary>
+        /// Gets or sets the default model identifier used for processing requests.
+        /// </summary>
+        public string ModelId { get; set; } = "gpt-4o";
 
 
         /// <summary>
@@ -102,10 +107,10 @@ namespace MarinApp.Agents
                 var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
                 var httpClient = httpClientFactory.CreateClient("OpenAIWithRetry");
 
-                Logger?.LogDebug("Creating OpenAI chat completion with model: {ModelName}", GetModelName());
+                Logger?.LogDebug("Creating OpenAI chat completion with model: {ModelName}", ModelId);
 
                 builder.AddOpenAIChatCompletion(
-                    modelId: GetModelName(),
+                    modelId: ModelId,
                     apiKey: GetApiKey(),
                     httpClient: httpClient
                 );
@@ -169,15 +174,6 @@ namespace MarinApp.Agents
                         Console.WriteLine($"Retry {retryAttempt} after {timespan.TotalSeconds}s due to {outcome?.Exception?.Message ?? outcome?.Result?.StatusCode.ToString()}");
                     });
         }
-
-        /// <summary>
-        /// When implemented in a derived class, returns the OpenAI model name to use for chat completion.
-        /// <para>
-        /// Example: <c>"gpt-4"</c>, <c>"gpt-3.5-turbo"</c>, etc.
-        /// </para>
-        /// </summary>
-        /// <returns>The model name as a string.</returns>
-        protected abstract string GetModelName();
 
         /// <summary>
         /// Resolves the OpenAI API key from environment variables or application configuration.

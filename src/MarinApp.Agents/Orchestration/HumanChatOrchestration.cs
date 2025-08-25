@@ -13,7 +13,7 @@ namespace MarinApp.Agents.Orchestration
         protected IHumanProxy HumanAgent { get; private set; } = default!;
         protected IAgent Agent { get; private set; } = default!;
 
-        public HumanChatOrchestration(HumanProxyBase humanAgent, IAgent agent)
+        public HumanChatOrchestration(IHumanProxy humanAgent, IAgent agent)
         {
             HumanAgent = humanAgent ?? throw new ArgumentNullException(nameof(humanAgent));
             Agent = agent ?? throw new ArgumentNullException(nameof(agent));
