@@ -26,7 +26,8 @@ namespace MarinApp.Terminal
             Console.Clear();
 
             var logFactory = LoggerFactory.Create(builder => builder.AddEventLog().SetMinimumLevel(LogLevel.Error));
-            var storageContext = AgentDataContext.CreateNpgsql(DbConnectionStringHelper.GetConnectionString());
+            //var storageContext = AgentDataContext.CreateNpgsql(DbConnectionStringHelper.GetConnectionString());
+            var storageContext = AgentDataContext.CreateInMemory();
             storageContext.InitializeDb();
             var storageService = new AgentHistoryService(storageContext);
 
