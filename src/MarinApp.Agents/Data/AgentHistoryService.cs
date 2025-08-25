@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace MarinApp.Agents.Data
 {
@@ -19,68 +20,57 @@ namespace MarinApp.Agents.Data
     /// </remarks>
     public class AgentHistoryService : IAgentHistoryService
     {
-        /// <summary>
-        /// The in-memory store for agent messages.
-        /// </summary>
-        private readonly List<AgentMessage> _messages = new();
 
-        /// <summary>
-        /// Lock object for thread-safe access to the message store.
-        /// </summary>
-        private readonly object _lock = new();
+        private readonly AgentDataContext _dataContext;
+
+        public AgentHistoryService(AgentDataContext dataContext)
+        {
+            _dataContext = dataContext ?? throw new ArgumentNullException(nameof(dataContext));
+        }
+
 
         /// <inheritdoc />
-        public Task DeleteMessagesByAgentIdAsync(string agentId, CancellationToken cancellationToken = default)
+        public async Task DeleteMessagesByAgentIdAsync(string agentId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(agentId))
                 throw new ArgumentNullException(nameof(agentId));
 
-            lock (_lock)
-            {
-                _messages.RemoveAll(m => m.AgentId == agentId);
-            }
-            return Task.CompletedTask;
+            var entities = _dataContext.AgentMessages.Where(m => m.AgentId == agentId);
+            _dataContext.AgentMessages.RemoveRange(entities);
+            await _dataContext.SaveChangesAsync(cancellationToken);
         }
 
         /// <inheritdoc />
-        public Task DeleteMessagesBySessionAndAgentIdAsync(string sessionId, string agentId, CancellationToken cancellationToken = default)
+        public async Task DeleteMessagesBySessionAndAgentIdAsync(string sessionId, string agentId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(sessionId))
                 throw new ArgumentNullException(nameof(sessionId));
             if (string.IsNullOrWhiteSpace(agentId))
                 throw new ArgumentNullException(nameof(agentId));
 
-            lock (_lock)
-            {
-                _messages.RemoveAll(m => m.SessionId == sessionId && m.AgentId == agentId);
-            }
-            return Task.CompletedTask;
+            var entities = _dataContext.AgentMessages.Where(m => m.AgentId == agentId && m.SessionId == sessionId);
+            _dataContext.AgentMessages.RemoveRange(entities);
+            await _dataContext.SaveChangesAsync(cancellationToken);
         }
 
         /// <inheritdoc />
-        public Task DeleteMessagesBySessionIdAsync(string sessionId, CancellationToken cancellationToken = default)
+        public async Task DeleteMessagesBySessionIdAsync(string sessionId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(sessionId))
                 throw new ArgumentNullException(nameof(sessionId));
 
-            lock (_lock)
-            {
-                _messages.RemoveAll(m => m.SessionId == sessionId);
-            }
-            return Task.CompletedTask;
+            var entities = _dataContext.AgentMessages.Where(m => m.SessionId == sessionId);
+            _dataContext.AgentMessages.RemoveRange(entities);
+            await _dataContext.SaveChangesAsync(cancellationToken);
         }
 
         /// <inheritdoc />
-        public Task<AgentMessage> GetMessageByIdAsync(string messageId, CancellationToken cancellationToken = default)
+        public async Task<AgentMessage?> GetMessageByIdAsync(string messageId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(messageId))
                 throw new ArgumentNullException(nameof(messageId));
 
-            lock (_lock)
-            {
-                var message = _messages.FirstOrDefault(m => m.Id == messageId);
-                return Task.FromResult(message);
-            }
+            return await _dataContext.AgentMessages.SingleOrDefaultAsync(m => m.Id == messageId, cancellationToken);
         }
 
         /// <inheritdoc />
@@ -89,14 +79,9 @@ namespace MarinApp.Agents.Data
             if (string.IsNullOrWhiteSpace(agentId))
                 throw new ArgumentNullException(nameof(agentId));
 
-            lock (_lock)
-            {
-                var result = _messages
-                    .Where(m => m.AgentId == agentId)
-                    .OrderBy(m => m.UtcCreatedAt)
-                    .ToList();
-                return Task.FromResult(result);
-            }
+            return _dataContext.AgentMessages
+                .Where(m => m.AgentId == agentId)
+                .ToListAsync(cancellationToken);
         }
 
         /// <inheritdoc />
@@ -107,14 +92,9 @@ namespace MarinApp.Agents.Data
             if (string.IsNullOrWhiteSpace(agentId))
                 throw new ArgumentNullException(nameof(agentId));
 
-            lock (_lock)
-            {
-                var result = _messages
-                    .Where(m => m.SessionId == sessionId && m.AgentId == agentId)
-                    .OrderBy(m => m.UtcCreatedAt)
-                    .ToList();
-                return Task.FromResult(result);
-            }
+            return _dataContext.AgentMessages
+                .Where(m => m.SessionId == sessionId && m.AgentId == agentId)
+                .ToListAsync(cancellationToken);
         }
 
         /// <inheritdoc />
@@ -123,47 +103,34 @@ namespace MarinApp.Agents.Data
             if (string.IsNullOrWhiteSpace(sessionId))
                 throw new ArgumentNullException(nameof(sessionId));
 
-            lock (_lock)
-            {
-                var result = _messages
-                    .Where(m => m.SessionId == sessionId)
-                    .OrderBy(m => m.UtcCreatedAt)
-                    .ToList();
-                return Task.FromResult(result);
-            }
+            return _dataContext.AgentMessages
+                .Where(m => m.SessionId == sessionId)
+                .ToListAsync(cancellationToken);
         }
 
         /// <inheritdoc />
-        public Task SaveMessageAsync(AgentMessage message, CancellationToken cancellationToken = default)
+        public async Task SaveMessageAsync(AgentMessage message, CancellationToken cancellationToken = default)
         {
             if (message == null)
                 throw new ArgumentNullException(nameof(message));
 
-            lock (_lock)
-            {
-                // Remove any existing message with the same Id (update scenario)
-                _messages.RemoveAll(m => m.Id == message.Id);
-                _messages.Add(message);
-            }
-            return Task.CompletedTask;
+            await _dataContext.AddAsync<AgentMessage>(message, cancellationToken);
+            await _dataContext.SaveChangesAsync(cancellationToken);
         }
 
         /// <inheritdoc />
-        public Task SaveMessagesAsync(IEnumerable<AgentMessage> messages, CancellationToken cancellationToken = default)
+        public async Task SaveMessagesAsync(IEnumerable<AgentMessage> messages, CancellationToken cancellationToken = default)
         {
             if (messages == null)
                 throw new ArgumentNullException(nameof(messages));
 
-            lock (_lock)
+            foreach (var message in messages)
             {
-                foreach (var message in messages)
-                {
-                    if (message == null) continue;
-                    _messages.RemoveAll(m => m.Id == message.Id);
-                    _messages.Add(message);
-                }
+                if (message == null) continue;
+                await _dataContext.AddAsync<AgentMessage>(message, cancellationToken);
             }
-            return Task.CompletedTask;
+
+            await _dataContext.SaveChangesAsync(cancellationToken);
         }
     }
 }

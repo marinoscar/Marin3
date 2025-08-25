@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MarinApp.Agents.Data;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,8 +11,8 @@ namespace MarinApp.Terminal
     {
         public static void Run()
         {
-            //var storageContext = AgentDataContext.CreateInMemory();
-            //var storageService = new AgentHistoryService(storageContext);
+            var storageContext = AgentDataContext.CreateInMemory();
+            var storageService = new MarinApp.Agents.Data.AgentHistoryService();
 
         }
     }
