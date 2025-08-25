@@ -10,7 +10,7 @@ namespace MarinApp.Agents.Orchestration
 {
     public class HumanChatOrchestration
     {
-        protected HumanProxyBase HumanAgent { get; private set; } = default!;
+        protected IHumanProxy HumanAgent { get; private set; } = default!;
         protected IAgent Agent { get; private set; } = default!;
 
         public HumanChatOrchestration(HumanProxyBase humanAgent, IAgent agent)
@@ -24,6 +24,14 @@ namespace MarinApp.Agents.Orchestration
 
         public void StartChat(string initialMessage, Func<AgentMessage, bool> endSequence)
         {
+            if (string.IsNullOrEmpty(initialMessage)) throw new ArgumentNullException(nameof(initialMessage));
+
+            while (true)
+            {
+                var humanResponse = HumanAgent.SendMessageAsync(initialMessage).GetAwaiter().GetResult();
+                var agentResponse = Agent.SendMessageAsync(humanResponse.Content).GetAwaiter().GetResult();
+                //merge the history
+            }
 
         }
 
