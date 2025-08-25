@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Polly;
 
 namespace MarinApp.Agents
@@ -51,6 +52,11 @@ namespace MarinApp.Agents
             IConfiguration configuration)
             : base(agentHistoryService, configuration, loggerFactory)
         {
+            DefaultExecutionSettings = new OpenAIPromptExecutionSettings()
+            {
+                ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions,
+                Temperature = 0.7
+            };
         }
 
         /// <summary>
