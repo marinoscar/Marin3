@@ -77,16 +77,6 @@ namespace MarinApp.Agents.Data
         /// schema updates, it applies any pending migrations to bring the database schema up to date.</remarks>
         public void InitializeDb()
         {
-            // Check if the database exists; if not, create it and all required tables
-            if (!this.Database.CanConnect())
-            {
-                this.Database.EnsureCreated();
-            }
-            else
-            {
-                // Ensure all tables are created (for cases where DB exists but tables do not)
-                this.Database.Migrate();
-            }
         }
 
         /// <summary>

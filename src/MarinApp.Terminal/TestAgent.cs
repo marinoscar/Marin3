@@ -1,6 +1,7 @@
 ﻿using MarinApp.Agents;
 using MarinApp.Agents.Data;
 using MarinApp.Agents.Orchestration;
+using MarinApp.Core.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
@@ -22,8 +23,10 @@ namespace MarinApp.Terminal
 
         public void Run()
         {
+            Console.Clear();
+
             var logFactory = LoggerFactory.Create(builder => builder.AddEventLog().SetMinimumLevel(LogLevel.Error));
-            var storageContext = AgentDataContext.CreateInMemory();
+            var storageContext = AgentDataContext.CreateNpgsql(DbConnectionStringHelper.GetConnectionString());
             storageContext.InitializeDb();
             var storageService = new AgentHistoryService(storageContext);
 
