@@ -331,7 +331,6 @@ namespace MarinApp.Agents
         public virtual void OnBeforeMessageSent(ChatMessageContent messageContent)
         {
             Logger.LogDebug("OnBeforeMessageSent called. MessageContent: {Content}", messageContent?.Content);
-            // Override in derived classes to handle events before sending a message.
         }
 
         /// <summary>

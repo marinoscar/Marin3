@@ -192,7 +192,6 @@ namespace MarinApp.Agents
                 Logger.LogDebug("Adding user message to history for GetMessageAsync. Content: {Content}", content.Content);
                 History.Add(content);
 
-                Logger.LogDebug("Calling OnBeforeMessageSent.");
                 OnBeforeMessageSent(content);
 
                 Logger.LogInformation("Requesting chat message content from service.");

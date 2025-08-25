@@ -1,4 +1,5 @@
 ﻿using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.ChatCompletion;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -45,6 +46,20 @@ namespace MarinApp.Agents
             //    We return null so callers can fallback to provider-native telemetry.
             //    Ref: issue noting Bedrock connector doesn’t populate usage in Metadata.
             return null;
+        }
+
+        public static void MergeChatHistory(this ChatHistory target, ChatHistory source)
+        {
+            if (target is null) throw new ArgumentNullException(nameof(target));
+            if (source is null) throw new ArgumentNullException(nameof(source));
+            foreach (var message in source)
+            {
+                // Avoid duplicates based on Role and Content
+                if (!target.Any(m => m.Role == message.Role && m.Content == message.Content))
+                {
+                    target.Add(message);
+                }
+            }
         }
 
         #region Private Helpers
