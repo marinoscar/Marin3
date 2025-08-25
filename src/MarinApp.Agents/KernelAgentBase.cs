@@ -55,6 +55,7 @@ namespace MarinApp.Agents
         /// <exception cref="ArgumentNullException">Thrown if required dependencies are null.</exception>
         public KernelAgentBase(IAgentHistoryService agentHistoryService, IConfiguration configuration, ILoggerFactory loggerFactory) : base(agentHistoryService, configuration, loggerFactory)
         {
+            Kernel = InitializeKernel();
         }
 
         /// <summary>
@@ -190,7 +191,6 @@ namespace MarinApp.Agents
                     Logger.LogError("GetMessageAsync called without a valid SessionId.");
                     throw new InvalidOperationException("SessionId is not set. Please call StartSession() before streaming messages.");
                 }
-                Kernel = InitializeKernel();
                 var service = Kernel.GetRequiredService<IChatCompletionService>();
                 Logger.LogDebug("Adding user message to history for GetMessageAsync. Content: {Content}", content.Content);
                 History.Add(content);
