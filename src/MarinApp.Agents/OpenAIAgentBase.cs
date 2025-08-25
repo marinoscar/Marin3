@@ -1,4 +1,5 @@
 ﻿using MarinApp.Agents.Data;
+using MarinApp.Agents.Functions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -58,22 +59,30 @@ namespace MarinApp.Agents
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
+
         /// <summary>
-        /// Initializes and returns a new instance of the <see cref="Kernel"/> configured for OpenAI chat completion.
-        /// <para>
-        /// This method sets up an <see cref="IHttpClientFactory"/> with a Polly retry policy for resilient HTTP requests,
-        /// configures the OpenAI chat completion service with the specified model and API key, and allows derived classes
-        /// to further customize the kernel builder.
-        /// </para>
+        /// Initializes and configures a Semantic Kernel instance for OpenAI chat completion with robust HTTP retry policies.
         /// </summary>
+        /// <remarks>
+        /// <para>
+        /// This method sets up the Semantic Kernel with the following features:
+        /// <list type="bullet">
+        ///   <item>Configures an <see cref="HttpClient"/> with a Polly-based retry policy for resilient OpenAI API calls.</item>
+        ///   <item>Injects the OpenAI chat completion service using the model name and API key provided by derived classes.</item>
+        ///   <item>Adds debug-level logging to the kernel for detailed diagnostics.</item>
+        ///   <item>Invokes <see cref="OnBuildingKernel"/> to allow further customization by subclasses.</item>
+        ///   <item>Adds standard plugins (e.g., <see cref="DateFunctions"/>) to the kernel.</item>
+        /// </list>
+        /// </para>
+        /// <para>
+        /// If any step fails, the method logs the error and rethrows the exception.
+        /// </para>
+        /// </remarks>
         /// <returns>
-        /// A fully initialized <see cref="Kernel"/> instance with OpenAI chat completion and logging configured.
+        /// A fully configured <see cref="Kernel"/> instance ready for use with OpenAI chat completion.
         /// </returns>
-        /// <exception cref="InvalidOperationException">
-        /// Thrown if the OpenAI API key cannot be resolved from environment variables or configuration.
-        /// </exception>
         /// <exception cref="Exception">
-        /// Thrown if kernel initialization fails for any reason.
+        /// Thrown if kernel initialization fails at any stage.
         /// </exception>
         protected override Kernel InitializeKernel()
         {
@@ -108,6 +117,10 @@ namespace MarinApp.Agents
                 OnBuildingKernel(builder);
 
                 kernel = builder.Build();
+
+                Logger?.LogDebug("Adding standard plugins to the kernel.");
+                kernel.Plugins.AddFromObject(new DateFunctions());
+
 
                 Logger?.LogDebug("Kernel successfully built for OpenAIAgentBase.");
             }
