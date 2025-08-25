@@ -57,6 +57,11 @@ namespace MarinApp.Agents
         string SystemPrompt { get; }
 
         /// <summary>
+        /// Gets or sets the default execution settings for prompt operations.
+        /// </summary>
+        PromptExecutionSettings DefaultExecutionSettings { get; set; }
+
+        /// <summary>
         /// Occurs when a message has been completed and processed by the agent.
         /// </summary>
         /// <remarks>

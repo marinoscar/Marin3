@@ -103,6 +103,9 @@ namespace MarinApp.Agents
         /// <inheritdoc />
         public virtual string SystemPrompt { get; protected set; } = default!;
 
+        /// <inheritdoc />
+        public virtual PromptExecutionSettings DefaultExecutionSettings { get; set; } = new();
+
         /// <summary>
         /// Gets the current session identifier.
         /// </summary>
