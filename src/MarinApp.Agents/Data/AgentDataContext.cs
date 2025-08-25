@@ -70,6 +70,26 @@ namespace MarinApp.Agents.Data
         }
 
         /// <summary>
+        /// Initializes the database by ensuring its existence and applying any pending migrations.
+        /// </summary>
+        /// <remarks>This method checks whether the database can be connected to. If the database does not
+        /// exist,  it creates the database and all required tables. If the database exists but is missing tables  or
+        /// schema updates, it applies any pending migrations to bring the database schema up to date.</remarks>
+        public void InitializeDb()
+        {
+            // Check if the database exists; if not, create it and all required tables
+            if (!this.Database.CanConnect())
+            {
+                this.Database.EnsureCreated();
+            }
+            else
+            {
+                // Ensure all tables are created (for cases where DB exists but tables do not)
+                this.Database.Migrate();
+            }
+        }
+
+        /// <summary>
         /// Creates a new instance of <see cref="AgentDataContext"/> configured for PostgreSQL using the provided connection string.
         /// </summary>
         /// <param name="connectionString">The PostgreSQL connection string.</param>

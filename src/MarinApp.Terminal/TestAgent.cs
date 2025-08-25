@@ -1,4 +1,8 @@
-﻿using MarinApp.Agents.Data;
+﻿using MarinApp.Agents;
+using MarinApp.Agents.Data;
+using MarinApp.Agents.Orchestration;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,11 +13,39 @@ namespace MarinApp.Terminal
 {
     internal class TestAgent
     {
-        public static void Run()
-        {
-            var storageContext = AgentDataContext.CreateInMemory();
-            var storageService = new MarinApp.Agents.Data.AgentHistoryService();
+        private readonly IConfiguration _configuration;
 
+        public TestAgent(IConfiguration configuration)
+        {
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        }
+
+        public void Run()
+        {
+            var logFactory = LoggerFactory.Create(builder => builder.AddEventLog().SetMinimumLevel(LogLevel.Error));
+            var storageContext = AgentDataContext.CreateInMemory();
+            storageContext.InitializeDb();
+            var storageService = new AgentHistoryService(storageContext);
+
+            var humanAgent = new ColorConsoleAgent(storageService, logFactory);
+            var aiAgent = new AIAgent(storageService, logFactory, _configuration);
+
+            var chat = new HumanChatOrchestration(humanAgent, aiAgent);
+
+            chat.StartChat("Hello how can I help you? when you are ready, just type done", (message) =>
+            {
+                return message.Content.Contains("done", StringComparison.OrdinalIgnoreCase);
+            });
+
+        }
+    }
+
+    internal class AIAgent : OpenAIAgentBase
+    {
+        public AIAgent(IAgentHistoryService agentHistoryService, ILoggerFactory loggerFactory, IConfiguration configuration) : base(agentHistoryService, loggerFactory, configuration)
+        {
+            SetAgentDetails("openai-agent", "OpenAI Agent", "An AI agent that uses OpenAI's GPT models to generate responses.");
+            SetSystemMessage("You are a helpful assistant.");
         }
     }
 }

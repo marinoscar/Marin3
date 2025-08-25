@@ -3,6 +3,7 @@ using MarinApp.Core.Configuration;
 using MarinApp.Core.Data;
 using MarinApp.Core.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -65,7 +66,7 @@ namespace MarinApp.Terminal
             _logger = factory.CreateLogger<Program>();
 
             // Execute the main console logic, passing in parsed command-line arguments.
-            RunConsole(arguments);
+            RunConsole(arguments, app);
 
             // Keep the application alive and responsive (useful for background services).
             // This blocks until the host is shut down (e.g., by Ctrl+C).
@@ -76,9 +77,11 @@ namespace MarinApp.Terminal
         /// Executes the main logic of the application.
         /// </summary>
         /// <param name="arguments">Parsed command-line options.</param>
-        static void RunConsole(ConsoleOptions arguments)
+        static void RunConsole(ConsoleOptions arguments, IHost host)
         {
-            WriteLineInfo("Hello World");
+            var config = host.Services.GetRequiredService<IConfiguration>();
+            var agent = new TestAgent(config);
+            agent.Run();
         }
 
 
