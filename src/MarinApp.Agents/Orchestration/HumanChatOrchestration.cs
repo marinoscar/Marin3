@@ -1,4 +1,5 @@
-﻿using Microsoft.SemanticKernel;
+﻿using MarinApp.Agents.Data;
+using Microsoft.SemanticKernel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,9 +22,9 @@ namespace MarinApp.Agents.Orchestration
             Agent.SetSession(session);
         }
 
-        public async Task SendMessageAsync(string message, CancellationToken cancellationToken = default)
+        public void StartChat(string initialMessage, Func<AgentMessage, bool> endSequence)
         {
-            var agentResponse = await Agent.SendMessageAsync(message, new PromptExecutionSettings(), cancellationToken);
+
         }
 
     }

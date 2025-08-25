@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace MarinApp.Agents
 {
-    public abstract class HumanProxyBase : AgentBase
+    public abstract class HumanProxyBase : AgentBase, IAgent, IHumanProxy
     {
         protected HumanProxyBase(IAgentHistoryService agentHistoryService, ILoggerFactory loggerFactory) : base(agentHistoryService, loggerFactory)
         {
@@ -44,6 +44,8 @@ namespace MarinApp.Agents
             return SendMessageAsync(content, executionSettings ?? DefaultExecutionSettings, cancellationToken);
         }
 
+
+        public abstract void PrintMessage(string content, string mimeType);
         public abstract Task<string> WaitOnHumanResponseAsync(string? agentText, ChatHistory history, CancellationToken cancellationToken);
     }
 }
