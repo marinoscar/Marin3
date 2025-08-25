@@ -116,9 +116,15 @@ namespace MarinApp.Agents
         }
 
         /// <inheritdoc/>
-        public override void PrintMessage(string content, string mimeType)
+        public override void PrintUserMessage(string content, string mimeType)
         {
             PrintUserText(content);
+        }
+
+        /// <inheritdoc/>
+        public override void PrintAgentMessage(string content, string mimeType)
+        {
+            PrintAgentText(content);
         }
     }
 }

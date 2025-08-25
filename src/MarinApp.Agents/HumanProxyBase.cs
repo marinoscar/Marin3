@@ -33,7 +33,7 @@ namespace MarinApp.Agents
     /// </list>
     /// </para>
     /// <para>
-    /// <b>Usage:</b> Inherit from <see cref="HumanProxyBase"/> and implement <see cref="PrintMessage(string, string)"/>
+    /// <b>Usage:</b> Inherit from <see cref="HumanProxyBase"/> and implement <see cref="PrintUserMessage(string, string)"/>
     /// and <see cref="WaitOnHumanResponseAsync(string?, ChatHistory, CancellationToken)"/> to connect to your UI or input mechanism.
     /// </para>
     /// </summary>
@@ -94,7 +94,11 @@ namespace MarinApp.Agents
         }
 
         /// <inheritdoc/>
-        public abstract void PrintMessage(string content, string mimeType);
+        public abstract void PrintUserMessage(string content, string mimeType);
+
+        /// <inheritdoc/>
+        public abstract void PrintAgentMessage(string content, string mimeType);
+
         /// <inheritdoc/>
         public abstract Task<string> WaitOnHumanResponseAsync(string? agentText, ChatHistory history, CancellationToken cancellationToken);
     }
