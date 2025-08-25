@@ -222,7 +222,7 @@ namespace MarinApp.Agents
                 });
 
                 Logger.LogInformation("Requesting chat message content from service.");
-                var apiResponse = await service.GetChatMessageContentAsync(History.ChatHistory, executionSettings, Kernel, cancellationToken);
+                var apiResponse = await service.GetChatMessageContentAsync(History.ChatHistory, executionSettings ?? DefaultExecutionSettings, Kernel, cancellationToken);
                 var agentResponse = AgentMessage.Create(SessionId, this, apiResponse);
                 try
                 {
