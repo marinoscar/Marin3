@@ -1,4 +1,5 @@
-﻿using Microsoft.SemanticKernel.ChatCompletion;
+﻿using MarinApp.Agents.Data;
+using Microsoft.SemanticKernel.ChatCompletion;
 
 namespace MarinApp.Agents
 {
@@ -92,7 +93,7 @@ namespace MarinApp.Agents
         /// Optional text or prompt from the agent to display to the user, providing context for the expected response.
         /// </param>
         /// <param name="history">
-        /// The current <see cref="ChatHistory"/> of the conversation, which may be used to provide additional context or display previous messages to the user.
+        /// The current <see cref="AgentHistory"/> of the conversation, which may be used to provide additional context or display previous messages to the user.
         /// </param>
         /// <param name="cancellationToken">
         /// A <see cref="CancellationToken"/> that can be used to cancel the wait operation if needed (e.g., if the session is terminated or times out).
@@ -104,6 +105,6 @@ namespace MarinApp.Agents
         /// Implementations should block or suspend execution until the user provides input, or the operation is cancelled.
         /// The returned string should contain the user's raw input, which may be further processed by the agent or system.
         /// </remarks>
-        Task<string> WaitOnHumanResponseAsync(string? agentText, ChatHistory history, CancellationToken cancellationToken);
+        Task<string> WaitOnHumanResponseAsync(string? agentText, AgentHistory history, CancellationToken cancellationToken);
     }
 }

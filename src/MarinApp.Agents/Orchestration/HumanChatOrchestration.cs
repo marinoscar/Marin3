@@ -35,7 +35,7 @@ namespace MarinApp.Agents.Orchestration
                 HumanAgent.PrintAgentMessage(agentResponse.Content, agentResponse.MimeType);
 
                 //merge the history
-                HumanAgent.History.MergeChatHistory(Agent.History);
+                
                 if (endSequence(agentResponse)) return;
             }
 

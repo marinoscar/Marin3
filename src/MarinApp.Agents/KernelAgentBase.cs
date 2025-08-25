@@ -107,13 +107,22 @@ namespace MarinApp.Agents
                 }
 
                 Logger.LogDebug("Adding user message to history for streaming. Content: {Content}", content.Content);
-                History.Add(content);
-                Kernel = InitializeKernel();
+                
                 var service = Kernel.GetRequiredService<IChatCompletionService>();
                 var sb = new StringBuilder();
                 StreamingChatMessageContent last = default!;
+
+                //Add user input
+                var userMessage = AgentMessage.Create(SessionId, this, content);
+                History.Add(new AgentItem()
+                {
+                    Id = userMessage.Id,
+                    Content = content,
+                    AgentMessage = userMessage
+                });
+
                 Logger.LogInformation("Starting streaming chat message contents.");
-                await foreach (var r in service.GetStreamingChatMessageContentsAsync(History, executionSettings ?? DefaultExecutionSettings, Kernel, cancellationToken))
+                await foreach (var r in service.GetStreamingChatMessageContentsAsync(History.ChatHistory, executionSettings ?? DefaultExecutionSettings, Kernel, cancellationToken))
                 {
                     try
                     {
@@ -128,7 +137,7 @@ namespace MarinApp.Agents
                     sb.Append(r.Content);
                 }
                 Logger.LogInformation("Streaming complete. Assembling final chat message.");
-                var chatMesage = new ChatMessageContent()
+                var agentReply = new ChatMessageContent()
                 {
                     Role = last.Role.Value,
                     Content = sb.ToString(),
@@ -138,11 +147,11 @@ namespace MarinApp.Agents
                     Metadata = last.Metadata,
                     Encoding = last.Encoding,
                 };
-                var agentResponse = AgentMessage.Create(SessionId, this, chatMesage);
-                OnMessageCompleted(chatMesage, agentResponse);
+                var agentResponse = AgentMessage.Create(SessionId, this, agentReply);
+                OnMessageCompleted(agentReply, agentResponse);
 
                 //try and get token count
-                var usage = chatMesage.TryGetUsage();
+                var usage = agentReply.TryGetUsage();
                 if(usage != null)
                 {
                     agentResponse.InputTokens = usage.InputTokens;
@@ -150,8 +159,15 @@ namespace MarinApp.Agents
                     agentResponse.TotalTokens = usage.TotalTokens;
                 }
 
+                History.Add(new AgentItem()
+                {
+                    Id = agentResponse.Id,
+                    Content = agentReply,
+                    AgentMessage = agentResponse
+                });
+
                 Logger.LogDebug("Saving streamed user and agent messages.");
-                await SaveMessageAsync(AgentMessage.Create(SessionId, this, content), agentResponse, cancellationToken);
+                await SaveMessageAsync(userMessage, agentResponse, cancellationToken);
                 Logger.LogInformation("Streamed message saved successfully.");
                 return agentResponse;
             }
@@ -193,12 +209,20 @@ namespace MarinApp.Agents
                 }
                 var service = Kernel.GetRequiredService<IChatCompletionService>();
                 Logger.LogDebug("Adding user message to history for GetMessageAsync. Content: {Content}", content.Content);
-                History.Add(content);
 
                 OnBeforeMessageSent(content);
 
+                //Add user input
+                var userMessage = AgentMessage.Create(SessionId, this, content);
+                History.Add(new AgentItem()
+                {
+                    Id = userMessage.Id,
+                    Content = content,
+                    AgentMessage = userMessage
+                });
+
                 Logger.LogInformation("Requesting chat message content from service.");
-                var apiResponse = await service.GetChatMessageContentAsync(History, executionSettings, Kernel, cancellationToken);
+                var apiResponse = await service.GetChatMessageContentAsync(History.ChatHistory, executionSettings, Kernel, cancellationToken);
                 var agentResponse = AgentMessage.Create(SessionId, this, apiResponse);
                 try
                 {
@@ -219,6 +243,14 @@ namespace MarinApp.Agents
                     agentResponse.OutputTokens = usage.OutputTokens;
                     agentResponse.TotalTokens = usage.TotalTokens;
                 }
+
+                History.Add(new AgentItem()
+                {
+                    Id = agentResponse.Id,
+                    Content = apiResponse,
+                    AgentMessage = agentResponse
+                });
+
 
                 await SaveMessageAsync(AgentMessage.Create(SessionId, this, content), agentResponse, cancellationToken);
                 Logger.LogInformation("GetMessageAsync completed and messages saved.");

@@ -102,7 +102,7 @@ namespace MarinApp.Agents
         /// <inheritdoc />
         public string Description { get; set; } = default!;
         /// <inheritdoc />
-        public virtual ChatHistory History { get; protected set; } = [];
+        public virtual AgentHistory History { get; protected set; } = [];
         /// <inheritdoc />
         public virtual string SystemPrompt { get; protected set; } = default!;
 
@@ -165,7 +165,6 @@ namespace MarinApp.Agents
                 Logger.LogError("SetSession called with null or whitespace sessionId.");
                 throw new ArgumentNullException(nameof(sessionId));
             }
-            History = new ChatHistory();
             SessionId = sessionId;
             Logger.LogInformation("Session set. SessionId: {SessionId}", SessionId);
             return SessionId;
@@ -194,15 +193,21 @@ namespace MarinApp.Agents
             {
                 try
                 {
-                    var content = new ChatMessageContent
+                    var item = new AgentItem()
                     {
-                        Role = Enum.Parse<AuthorRole>(m.Role, true),
-                        Content = m.Content,
-                        MimeType = m.MimeType,
-                        ModelId = m.ModelId,
-                        Metadata = string.IsNullOrWhiteSpace(m.Metadata) ? new Dictionary<string, object>() : JsonSerializer.Deserialize<Dictionary<string, object>>(m.Metadata) ?? new Dictionary<string, object>()
+                        Id = m.Id,
+                        AgentMessage = m,
+                        Content = new ChatMessageContent
+                        {
+                            Role = Enum.Parse<AuthorRole>(m.Role, true),
+                            Content = m.Content,
+                            MimeType = m.MimeType,
+                            ModelId = m.ModelId,
+                            Metadata = string.IsNullOrWhiteSpace(m.Metadata) ? new Dictionary<string, object>() : JsonSerializer.Deserialize<Dictionary<string, object>>(m.Metadata) ?? new Dictionary<string, object>()
+                        }
                     };
-                    History.Add(content);
+                    
+                    History.Add(item);
                 }
                 catch (Exception ex)
                 {
@@ -259,7 +264,7 @@ namespace MarinApp.Agents
                     Logger.LogDebug("SystemPrompt is empty, using default system prompt.");
                     sysPrompt = "You are a helpful assistant.";
                 }
-                History.AddSystemMessage(sysPrompt);
+                History.ChatHistory.AddSystemMessage(sysPrompt);
                 Logger.LogInformation("Chat history reset. SystemPrompt: {SystemPrompt}", sysPrompt);
             }
             catch (Exception ex)

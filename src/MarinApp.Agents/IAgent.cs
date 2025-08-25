@@ -39,7 +39,7 @@ namespace MarinApp.Agents
         /// <summary>
         /// Gets the chat history for the current session.
         /// </summary>
-        ChatHistory History { get; }
+        AgentHistory History { get; }
 
         /// <summary>
         /// Gets or sets the unique identifier for the agent.

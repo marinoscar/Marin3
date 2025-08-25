@@ -34,7 +34,7 @@ namespace MarinApp.Agents
     {
 
 
-        private IDictionary<ChatMessageContent, bool> _store = new Dictionary<ChatMessageContent, bool>();
+        private IDictionary<string, bool> _store = new Dictionary<string, bool>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ColorConsoleAgent"/> class.
@@ -61,20 +61,20 @@ namespace MarinApp.Agents
         /// <param name="cancellationToken">A cancellation token to observe while waiting for the response.</param>
         /// <returns>The user's response as a string.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="agentText"/> is null or empty.</exception>
-        public override async Task<string> WaitOnHumanResponseAsync(string? agentText, ChatHistory history, CancellationToken cancellationToken)
+        public override async Task<string> WaitOnHumanResponseAsync(string? agentText, AgentHistory history, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(agentText)) throw new ArgumentNullException(nameof(agentText));
 
-            foreach (var message in history)
+            foreach (var m in history)
             {
-                if (_store.ContainsKey(message) && _store[message]) continue;
+                if (_store.ContainsKey(m.Id) && _store[m.Id]) continue;
 
-                if(message.Role == AuthorRole.User)
-                    PrintUserText(message.Content ?? "Empty");
+                if(m.Content.Role == AuthorRole.User)
+                    PrintUserText(m.Content.Content ?? "Empty");
                 else
-                    PrintAgentText(message.Content ?? "Empty");
+                    PrintAgentText(m.Content.Content ?? "Empty");
 
-                _store[message] = true;
+                _store[m.Id] = true;
             }
 
             PrintAgentText(agentText);
