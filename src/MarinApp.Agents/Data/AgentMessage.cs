@@ -72,7 +72,7 @@ namespace MarinApp.Agents.Data
         /// </summary>
         [Required]
         [Display(Name = "Model Id", Description = "Identifier for the model that generated this message.")]
-        public string ModelId { get; set; } = default!;
+        public string? ModelId { get; set; } = default!;
 
         /// <summary>
         /// Gets or sets the metadata in JSON format related to the message.
@@ -126,7 +126,7 @@ namespace MarinApp.Agents.Data
                 Content = content.Content ?? throw new ArgumentNullException(nameof(content.Content)),
                 InnerContent = JsonSerializer.Serialize(content.InnerContent, o) ?? "{}",
                 MimeType = content.MimeType ?? "text/markdown",
-                ModelId = content.ModelId ?? throw new ArgumentNullException(nameof(content.ModelId)),
+                ModelId = content.ModelId,
                 Metadata = content.Metadata != null ? JsonSerializer.Serialize(content.Metadata, o) : "{}"
             };
         }

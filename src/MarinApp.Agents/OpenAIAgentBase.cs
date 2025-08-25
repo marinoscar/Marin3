@@ -39,11 +39,6 @@ namespace MarinApp.Agents
     public class OpenAIAgentBase : KernelAgentBase
     {
         /// <summary>
-        /// The application configuration instance used to resolve API keys and other settings.
-        /// </summary>
-        private readonly IConfiguration _configuration;
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="OpenAIAgentBase"/> class.
         /// </summary>
         /// <param name="agentHistoryService">The service responsible for persisting and retrieving agent message history.</param>
@@ -54,9 +49,8 @@ namespace MarinApp.Agents
             IAgentHistoryService agentHistoryService,
             ILoggerFactory loggerFactory,
             IConfiguration configuration)
-            : base(agentHistoryService, loggerFactory)
+            : base(agentHistoryService, configuration, loggerFactory)
         {
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         /// <summary>
@@ -96,27 +90,26 @@ namespace MarinApp.Agents
             // Configure HttpClient with retry policy
             var services = builder.Services;
 
-            services.AddHttpClient("OpenAIWithRetry")
-                .AddPolicyHandler(GetRetryPolicy());
+            //services.AddHttpClient("OpenAIWithRetry")
+            //    .AddPolicyHandler(GetRetryPolicy());
 
             Kernel kernel = null;
             try
             {
                 // Build service provider temporarily to get HttpClient
-                using var serviceProvider = services.BuildServiceProvider();
-                var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
-                var httpClient = httpClientFactory.CreateClient("OpenAIWithRetry");
-
+                //var serviceProvider = services.BuildServiceProvider();
+                //var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
+                //var httpClient = httpClientFactory.CreateClient("OpenAIWithRetry");
                 Logger?.LogDebug("Creating OpenAI chat completion with model: {ModelName}", ModelId);
 
                 builder.AddOpenAIChatCompletion(
                     modelId: ModelId,
-                    apiKey: GetApiKey(),
-                    httpClient: httpClient
+                    apiKey: GetApiKey()
+                    //httpClient: httpClient
                 );
 
                 // Add debug logging for the kernel
-                builder.Services.AddLogging(c => c.AddDebug().SetMinimumLevel(LogLevel.Trace));
+                //builder.Services.AddLogging(c => c.AddDebug().SetMinimumLevel(LogLevel.Trace));
 
                 // Allow derived classes to further customize the kernel builder
                 OnBuildingKernel(builder);
@@ -197,7 +190,7 @@ namespace MarinApp.Agents
             if (!string.IsNullOrWhiteSpace(key)) return key;
 
             // Then check app settings
-            key = _configuration["OpenAI:ApiKey"];
+            key = Configuration["OpenAI:ApiKey"];
             if (!string.IsNullOrEmpty(key)) return key;
 
             throw new InvalidOperationException("OpenAI API key not found in environment variables or configuration.");

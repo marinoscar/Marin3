@@ -1,4 +1,5 @@
 ﻿using MarinApp.Agents.Data;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
@@ -44,10 +45,13 @@ namespace MarinApp.Agents
         /// <param name="agentHistoryService">
         /// The service responsible for persisting and retrieving agent message history.
         /// </param>
+        /// <param name="configuration">
+        /// The application configuration instance.
+        /// </param>
         /// <param name="loggerFactory">
         /// The logger factory used to create loggers for this agent instance.
         /// </param>
-        protected HumanProxyBase(IAgentHistoryService agentHistoryService, ILoggerFactory loggerFactory) : base(agentHistoryService, loggerFactory)
+        protected HumanProxyBase(IAgentHistoryService agentHistoryService, IConfiguration configuration, ILoggerFactory loggerFactory) : base(agentHistoryService, configuration, loggerFactory)
         {
         }
 

@@ -1,5 +1,6 @@
 ﻿using HandlebarsDotNet;
 using MarinApp.Agents.Data;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
@@ -48,12 +49,12 @@ namespace MarinApp.Agents
         /// Initializes a new instance of the <see cref="KernelAgentBase"/> class.
         /// </summary>
         /// <param name="agentHistoryService">The service for persisting and retrieving agent message history.</param>
+        /// <param name="configuration">The application's configuration settings.</param>
         /// <param name="loggerFactory">The logger factory for creating loggers.</param>
         /// <exception cref="InvalidOperationException">Thrown if the kernel cannot be initialized.</exception>
         /// <exception cref="ArgumentNullException">Thrown if required dependencies are null.</exception>
-        public KernelAgentBase(IAgentHistoryService agentHistoryService, ILoggerFactory loggerFactory) : base(agentHistoryService, loggerFactory)
+        public KernelAgentBase(IAgentHistoryService agentHistoryService, IConfiguration configuration, ILoggerFactory loggerFactory) : base(agentHistoryService, configuration, loggerFactory)
         {
-            Kernel = InitializeKernel() ?? throw new InvalidOperationException("Failed to initalize Kernel");
         }
 
         /// <summary>
@@ -106,6 +107,7 @@ namespace MarinApp.Agents
 
                 Logger.LogDebug("Adding user message to history for streaming. Content: {Content}", content.Content);
                 History.Add(content);
+                Kernel = InitializeKernel();
                 var service = Kernel.GetRequiredService<IChatCompletionService>();
                 var sb = new StringBuilder();
                 StreamingChatMessageContent last = default!;
@@ -188,6 +190,7 @@ namespace MarinApp.Agents
                     Logger.LogError("GetMessageAsync called without a valid SessionId.");
                     throw new InvalidOperationException("SessionId is not set. Please call StartSession() before streaming messages.");
                 }
+                Kernel = InitializeKernel();
                 var service = Kernel.GetRequiredService<IChatCompletionService>();
                 Logger.LogDebug("Adding user message to history for GetMessageAsync. Content: {Content}", content.Content);
                 History.Add(content);

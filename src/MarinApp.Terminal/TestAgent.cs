@@ -27,7 +27,7 @@ namespace MarinApp.Terminal
             storageContext.InitializeDb();
             var storageService = new AgentHistoryService(storageContext);
 
-            var humanAgent = new ColorConsoleAgent(storageService, logFactory);
+            var humanAgent = new ColorConsoleAgent(storageService, _configuration, logFactory);
             var aiAgent = new AIAgent(storageService, logFactory, _configuration);
 
             var chat = new HumanChatOrchestration(humanAgent, aiAgent);

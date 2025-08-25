@@ -1,5 +1,6 @@
 ﻿using HandlebarsDotNet;
 using MarinApp.Agents.Data;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
@@ -73,6 +74,7 @@ namespace MarinApp.Agents
         /// The service responsible for persisting and retrieving agent message history.
         /// This service is required for managing chat history across sessions and agents.
         /// </param>
+        /// <param name="configuration">The application's configuration settings.</param>
         /// <param name="loggerFactory">
         /// The logger factory used to create loggers for this agent instance.
         /// This enables structured logging for diagnostics and monitoring.
@@ -84,11 +86,12 @@ namespace MarinApp.Agents
         /// This constructor sets up the core dependencies for the agent, including history management and logging.
         /// It creates a logger instance specific to the derived agent type for contextual logging.
         /// </remarks>
-        public AgentBase(IAgentHistoryService agentHistoryService, ILoggerFactory loggerFactory)
+        public AgentBase(IAgentHistoryService agentHistoryService, IConfiguration configuration, ILoggerFactory loggerFactory)
         {
             HistoryService = agentHistoryService ?? throw new ArgumentNullException(nameof(agentHistoryService));
             LoggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
             Logger = loggerFactory.CreateLogger(this.GetType().Name) ?? throw new ArgumentNullException(nameof(loggerFactory));
+            Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
 
@@ -123,6 +126,11 @@ namespace MarinApp.Agents
         /// Gets the logger factory.
         /// </summary>
         protected virtual ILoggerFactory LoggerFactory { get; private set; }
+
+        /// <summary>
+        /// Gets the application's configuration settings.
+        /// </summary>
+        protected virtual IConfiguration Configuration { get; private set; } = default!;
 
         /// <summary>
         /// Gets the service for managing agent message history.
