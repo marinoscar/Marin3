@@ -7,6 +7,7 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -84,6 +85,9 @@ namespace MarinApp.Agents
                 // set the history for the next agent
                 next.Next.History.Clear();
                 MergeHistory(next.Next.History, agentHistory);
+
+                //Debug the transcript
+                Debug.WriteLine(agentHistory.GetTranscript());
 
                 // Send the message to the next agent, pass null exec settings to use the agent's default
                 var agentResponse = await next.Next.SendMessageAsync(prompt, null, cancellationToken);
