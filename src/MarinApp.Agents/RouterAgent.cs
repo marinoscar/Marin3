@@ -179,7 +179,7 @@ namespace MarinApp.Agents
 
         public record RouteResponse { public AgentMessage Message; public RouteDecision Decision; }
 
-        public record NextAgent { public bool Stop; public IAgent Next; public string Rationale };
+        public record NextAgent { public bool Stop; public IAgent Next; public string Rationale; }
 
     }
 }
