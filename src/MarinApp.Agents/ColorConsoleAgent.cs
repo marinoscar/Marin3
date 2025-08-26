@@ -63,8 +63,6 @@ namespace MarinApp.Agents
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="agentText"/> is null or empty.</exception>
         public override async Task<string> WaitOnHumanResponseAsync(string? agentText, AgentHistory history, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrEmpty(agentText)) throw new ArgumentNullException(nameof(agentText));
-
             foreach (var m in history)
             {
                 if (_store.ContainsKey(m.Id) && _store[m.Id]) continue;

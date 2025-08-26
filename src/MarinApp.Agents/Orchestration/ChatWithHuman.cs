@@ -165,10 +165,11 @@ namespace MarinApp.Agents.Orchestration
             ArgumentNullException.ThrowIfNull(endSequence);
             if (string.IsNullOrEmpty(initialMessage)) throw new ArgumentNullException(nameof(initialMessage));
 
+            // Send the initial or next message to the human and wait for their response.
+            var humanResponse = await HumanAgent.SendMessageAsync(initialMessage, cancellationToken);
+
             while (true)
             {
-                // Send the initial or next message to the human and wait for their response.
-                var humanResponse = await HumanAgent.SendMessageAsync(initialMessage, cancellationToken);
 
                 // Check if the end condition is met based on the human's response.
                 if (endSequence(humanResponse)) return;
@@ -178,6 +179,9 @@ namespace MarinApp.Agents.Orchestration
 
                 // Display the agent's reply to the human user.
                 HumanAgent.PrintAgentMessage(agentResponse.Content, agentResponse.MimeType);
+
+                // Wait for human input based on the agent's reply.
+                humanResponse = await HumanAgent.SendMessageAsync(string.Empty, null, cancellationToken);
             }
         }
     }

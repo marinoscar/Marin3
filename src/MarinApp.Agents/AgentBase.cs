@@ -483,9 +483,9 @@ namespace MarinApp.Agents
             PromptExecutionSettings? executionSettings = default,
             CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(prompt))
+            if (prompt == null)
             {
-                Logger.LogError("GetMessageAsync called with null or whitespace prompt.");
+                Logger.LogError("GetMessageAsync called with null prompt.");
                 throw new ArgumentNullException(nameof(prompt));
             }
 
