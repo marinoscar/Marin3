@@ -119,8 +119,13 @@ namespace MarinApp.Agents
         {
             if (decision == null)
                 throw new ArgumentNullException(nameof(decision));
+
+            if(decision.TaskCompleted)
+                return new NextAgent { Stop = true, Next = null, Rationale = "Task marked as completed." };
+
             if (string.IsNullOrEmpty(decision.Next))
                 throw new InvalidOperationException($"{nameof(RouterAgent)} was unable to identify the next agent");
+
             if (decision.Next.ToLowerInvariant().Equals("stop") || decision.Next.ToLowerInvariant().Equals("exit"))
                 return new NextAgent { Stop = true, Next = null, Rationale = "Stopping as per decision." };
 
