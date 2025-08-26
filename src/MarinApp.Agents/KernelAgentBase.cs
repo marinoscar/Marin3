@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel.Connectors.OpenAI;
 using System.Text;
 using System.Text.Json;
 
@@ -208,6 +209,7 @@ namespace MarinApp.Agents
                     throw new InvalidOperationException("SessionId is not set. Please call StartSession() before streaming messages.");
                 }
                 var service = Kernel.GetRequiredService<IChatCompletionService>();
+
                 Logger.LogDebug("Adding user message to history for GetMessageAsync. Content: {Content}", content.Content);
 
                 OnBeforeMessageSent(content);
