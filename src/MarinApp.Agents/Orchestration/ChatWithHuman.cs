@@ -23,12 +23,12 @@ namespace MarinApp.Agents.Orchestration
     /// <para>
     /// <b>Usage Example:</b>
     /// <code>
-    /// var orchestrator = new HumanChatOrchestration(humanProxy, agent);
+    /// var orchestrator = new ChatWithHuman(humanProxy, agent);
     /// orchestrator.StartChat("Hello! How can I help you today?", msg => msg.Content.Contains("bye"));
     /// </code>
     /// </para>
     /// </summary>
-    public class HumanChatOrchestration
+    public class ChatWithHuman
     {
         /// <summary>
         /// Gets the <see cref="IHumanProxy"/> instance representing the human participant in the chat.
@@ -41,7 +41,7 @@ namespace MarinApp.Agents.Orchestration
         protected IAgent Agent { get; private set; } = default!;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HumanChatOrchestration"/> class, establishing a shared session for both the human and agent participants.
+        /// Initializes a new instance of the <see cref="ChatWithHuman"/> class, establishing a shared session for both the human and agent participants.
         /// </summary>
         /// <param name="humanAgent">The <see cref="IHumanProxy"/> implementation that facilitates communication with the human user.</param>
         /// <param name="agent">The <see cref="IAgent"/> implementation that provides automated responses.</param>
@@ -49,7 +49,7 @@ namespace MarinApp.Agents.Orchestration
         /// <remarks>
         /// A new session identifier is generated and set for both the human proxy and the agent, ensuring that all subsequent messages are tracked under the same session context.
         /// </remarks>
-        public HumanChatOrchestration(IHumanProxy humanAgent, IAgent agent)
+        public ChatWithHuman(IHumanProxy humanAgent, IAgent agent)
         {
             HumanAgent = humanAgent ?? throw new ArgumentNullException(nameof(humanAgent));
             Agent = agent ?? throw new ArgumentNullException(nameof(agent));

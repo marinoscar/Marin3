@@ -34,7 +34,7 @@ namespace MarinApp.Terminal
             var humanAgent = new ColorConsoleAgent(storageService, _configuration, logFactory);
             var aiAgent = new AIAgent(storageService, logFactory, _configuration);
 
-            var chat = new HumanChatOrchestration(humanAgent, aiAgent);
+            var chat = new ChatWithHuman(humanAgent, aiAgent);
 
             chat.StartChat("Hello how can I help you? when you are ready, just type done", (message) =>
             {
