@@ -83,6 +83,7 @@ namespace MarinApp.Agents
             {
                 // set the history for the next agent
                 next.Next.History.Clear();
+                MergeHistory(next.Next.History, agentHistory);
 
                 // Send the message to the next agent, pass null exec settings to use the agent's default
                 var agentResponse = await next.Next.SendMessageAsync(prompt, null, cancellationToken);
@@ -104,6 +105,8 @@ namespace MarinApp.Agents
                 next = GetNext(routerDecision.Decision);
 
                 if (next.Stop) break;
+
+
 
             }
         }

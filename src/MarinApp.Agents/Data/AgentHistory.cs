@@ -68,5 +68,34 @@ namespace MarinApp.Agents.Data
             ChatHistory.Remove(item.Content);
             base.Remove(item);
         }
+
+        /// <summary>
+        /// Generates a formatted transcript of the chat history, including agent names and message content.
+        /// </summary>
+        /// <remarks>
+        /// The transcript is formatted in Markdown, with each message sectioned by agent and separated by horizontal rules.
+        /// This method iterates through all <see cref="AgentItem"/> objects in the history, extracting the agent's display name
+        /// and the message content from each <see cref="AgentMessage"/>. The output is suitable for display or export as a readable
+        /// chat log.
+        /// </remarks>
+        /// <returns>
+        /// A <see cref="string"/> containing the full chat transcript in Markdown format, including agent names and their messages.
+        /// </returns>
+        public string GetTranscript()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("# Chat Transcript:");
+            sb.AppendLine("---");
+            foreach (var item in this)
+            {
+                sb.AppendLine("");
+                sb.AppendLine($"## Agent: {item.AgentMessage.AgentName}");
+                sb.AppendLine("");
+                sb.AppendLine($"{item.AgentMessage.Content}");
+                sb.AppendLine("");
+                sb.AppendLine("---");
+            }
+            return sb.ToString();
+        }
     }
 }
