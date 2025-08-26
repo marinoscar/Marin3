@@ -89,6 +89,9 @@ namespace MarinApp.Agents
                 //Debug the transcript
                 Debug.WriteLine(agentHistory.GetTranscript());
 
+                // Notifies which agent is working
+                HumanAgent.PrintStatusMessage($"Routing to agent: {next.Next.Name}. Rationale: {next.Rationale}", "text/markdown");
+
                 // Send the message to the next agent, pass null exec settings to use the agent's default
                 var agentResponse = await next.Next.SendMessageAsync(prompt, null, cancellationToken);
 
@@ -101,6 +104,9 @@ namespace MarinApp.Agents
 
                 // Merge the common history into the router from next agent's history
                 MergeHistory(History, agentHistory);
+
+                // Print the agent response
+                HumanAgent.PrintAgentMessage(agentResponse.Content, agentResponse.MimeType);
 
                 // Evaluate the next move
                 routerDecision = await MessageRouterAsync("Decide on the next agent if the process is completed, just provide the word STOP on the Next property", cancellationToken);
