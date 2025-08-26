@@ -149,6 +149,8 @@ namespace MarinApp.Agents
                     Encoding = last.Encoding,
                 };
                 var agentResponse = AgentMessage.Create(SessionId, this, agentReply);
+                agentResponse.MessageContent = agentReply;  
+
                 OnMessageCompleted(agentReply, agentResponse);
 
                 //try and get token count
@@ -228,6 +230,9 @@ namespace MarinApp.Agents
                 var apiResponse = await service.GetChatMessageContentAsync(History.ChatHistory, executionSettings ?? DefaultExecutionSettings, Kernel, cancellationToken);
 
                 var agentResponse = AgentMessage.Create(SessionId, this, apiResponse);
+                agentResponse.MessageContent = apiResponse;
+                
+
                 try
                 {
                     Logger.LogDebug("Calling OnMessageCompleted.");

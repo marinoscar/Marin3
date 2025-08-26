@@ -3,6 +3,7 @@ using Microsoft.SemanticKernel;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -100,6 +101,12 @@ namespace MarinApp.Agents.Data
         [Required]
         [Display(Name = "Total Tokens", Description = "The total number of tokens used for the message (input + output).")]
         public int TotalTokens { get; set; }
+
+        /// <summary>
+        /// Gets or sets the content of the chat message.
+        /// </summary>
+        [NotMapped]
+        public ChatMessageContent MessageContent { get; set; } = default!;
 
         /// <summary>
         /// Creates a new instance of <see cref="AgentMessage"/> using the specified session ID, agent, and content.
