@@ -67,31 +67,64 @@ namespace MarinApp.Agents
         public async Task SetGoalAsync(string goal, int maxInterations = 32, CancellationToken cancellationToken = default)
         {
             if(!IsInitialized) throw new InvalidOperationException("RouterAgent is not initialized. Call InitializeAgents() first.");
+
+            //Send the goal to the router agent to determine the next agent
+            var routerDecision = await MessageRouterAsync(goal, cancellationToken);
+            // Get the next agent to invoke
+            var next = GetNext(routerDecision.Decision);
+            
+            //Initialize the common session history
             var agentHistory = new AgentHistory();
 
-            var routerDecision = await MessageRouterAsync(goal, cancellationToken);
+            //Establish the root message
+            string prompt = goal;
+
             for (int i = 0; i < maxInterations; i++)
             {
+                // set the history for the next agent
+                next.Next.History.Clear();
 
-                if (decision.AgentId == HumanAgent.Id)
-                {
-                    await HumanAgent.SendMessageAsync(new ChatMessageContent(goal), DefaultExecutionSettings, cancellationToken);
-                    return;
-                }
-                var agent = SpecializedAgents.FirstOrDefault(a => a.Id == decision.AgentId);
-                if (agent == null)
-                {
-                    throw new InvalidOperationException($"No specialized agent found with ID '{decision.AgentId}'.");
-                }
-                var agentResponse = await agent.SendMessageAsync(new ChatMessageContent(goal), DefaultExecutionSettings, cancellationToken);
-                goal = agentResponse.Content ?? string.Empty;
+                // Send the message to the next agent, pass null exec settings to use the agent's default
+                var agentResponse = await next.Next.SendMessageAsync(prompt, null, cancellationToken);
+
+                // Add the agent response to the common history
+                agentHistory.Add(new AgentItem() { 
+                    Id = agentResponse.Id,
+                    Content = agentResponse.MessageContent,
+                    AgentMessage = agentResponse
+                });
+
+                // Merge the common history into the router from next agent's history
+                MergeHistory(History, agentHistory);
+
+                // Evaluate the next move
+                routerDecision = await MessageRouterAsync("Decide on the next agent if the process is completed, just provide the word STOP on the Next property", cancellationToken);
+
+                // Get's the next agent to invoke
+                next = GetNext(routerDecision.Decision);
+
+                if (next.Stop) break;
+
             }
         }
 
-        protected virtual async Task<RouteDecision> MessageRouterAsync(string message, CancellationToken cancellationToken = default)
+        protected virtual NextAgent GetNext(RouteDecision decision)
+        {
+            if (decision == null)
+                throw new ArgumentNullException(nameof(decision));
+            if (string.IsNullOrEmpty(decision.Next))
+                throw new InvalidOperationException($"{nameof(RouterAgent)} was unable to identify the next agent");
+            if (decision.Next.ToLowerInvariant().Equals("stop") || decision.Next.ToLowerInvariant().Equals("exit"))
+                return new NextAgent { Stop = true, Next = null, Rationale = "Stopping as per decision." };
+
+            var nextAgent = SpecializedAgents.Single(a => a.Name.Equals(decision.Next, StringComparison.OrdinalIgnoreCase));
+            return new NextAgent() { Stop = false, Next = nextAgent, Rationale = decision.Rationale };
+        }
+
+        protected virtual async Task<RouteResponse> MessageRouterAsync(string message, CancellationToken cancellationToken = default)
         {
             var res = await SendMessageAsync(message, DefaultExecutionSettings, cancellationToken);
-            return ParseResponse(res.Content);
+            return ParseResponse(res);
         }
 
         protected virtual RouteResponse ParseResponse(AgentMessage response)
@@ -126,8 +159,20 @@ namespace MarinApp.Agents
             return sb.ToString();
         }
 
-        protected record RouteResponse { AgentMessage Message; RouteDecision Decision; }
+        private void MergeHistory(AgentHistory target, AgentHistory source)
+        {
+            foreach (var message in source)
+            {
+                if (!target.Any(m => m.Id == message.Id))
+                {
+                    target.Add(message);
+                }
+            }
+        }
 
+        public record RouteResponse { public AgentMessage Message; public RouteDecision Decision; }
+
+        public record NextAgent { public bool Stop; public IAgent Next; public string Rationale };
 
     }
 }
