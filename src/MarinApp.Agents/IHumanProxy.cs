@@ -86,6 +86,40 @@ namespace MarinApp.Agents
         /// </remarks>
         void PrintAgentMessage(string content, string mimeType);
 
+
+        /// <summary>
+        /// Displays a status message to the human user.
+        /// </summary>
+        /// <param name="content">
+        /// The status message content to display. This may include plain text, markdown, or other formats depending on the <paramref name="mimeType"/>.
+        /// </param>
+        /// <param name="mimeType">
+        /// The MIME type of the content (e.g., <c>text/plain</c>, <c>text/markdown</c>, <c>text/html</c>), which determines how the status message is rendered to the user.
+        /// </param>
+        /// <remarks>
+        /// <para>
+        /// This method is intended for displaying transient or informational status messages to the user, such as notifications, progress updates, or system alerts.
+        /// Status messages should be visually distinct from regular user or agent messages, for example by using a different color, icon, or placement in the UI.
+        /// </para>
+        /// <para>
+        /// The <paramref name="mimeType"/> parameter allows the implementation to render the content appropriately. For example, if the MIME type is <c>text/markdown</c>,
+        /// the content should be rendered as markdown; if it is <c>text/html</c>, the content should be rendered as HTML. Implementations should sanitize and validate
+        /// the content as appropriate for the specified MIME type to prevent security issues such as cross-site scripting (XSS).
+        /// </para>
+        /// <para>
+        /// This method does not return a value and is expected to perform its operation synchronously. If the display operation is asynchronous or requires user interaction,
+        /// consider using an asynchronous pattern or providing feedback to the caller.
+        /// </para>
+        /// <para>
+        /// <b>Example Usage:</b>
+        /// <code language="csharp">
+        /// // Display a plain text status message
+        /// humanProxy.PrintStatusMessage("Loading, please wait...", "text/plain");
+        /// </code>
+        /// </para>
+        /// </remarks>
+        void PrintStatusMessage(string content, string mimeType);
+
         /// <summary>
         /// Asynchronously waits for a response from the human user.
         /// </summary>

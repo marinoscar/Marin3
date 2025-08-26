@@ -100,6 +100,9 @@ namespace MarinApp.Agents
         public abstract void PrintAgentMessage(string content, string mimeType);
 
         /// <inheritdoc/>
+        public abstract void PrintStatusMessage(string content, string mimeType);
+
+        /// <inheritdoc/>
         public abstract Task<string> WaitOnHumanResponseAsync(string? agentText, AgentHistory history, CancellationToken cancellationToken);
     }
 }

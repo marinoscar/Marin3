@@ -124,5 +124,10 @@ namespace MarinApp.Agents
         {
             PrintAgentText(content);
         }
+
+        public override void PrintStatusMessage(string content, string mimeType)
+        {
+            PrintConsoleMessage(content, ConsoleColor.Magenta);
+        }
     }
 }
