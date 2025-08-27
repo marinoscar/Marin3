@@ -43,14 +43,17 @@ namespace MarinApp.Agents
 
         public void InitializeAgents(IHumanProxy humanProxy, params IAgent[] agents)
         {
-            InitializeAgents(CreateSystemPrompt(), humanProxy, agents);
+            InitializeAgents(null, humanProxy, agents);
         }
 
         public void InitializeAgents(string routerAgentPrompt, IHumanProxy humanProxy, params IAgent[] agents)
         {
-            if (string.IsNullOrWhiteSpace(routerAgentPrompt)) throw new ArgumentNullException(nameof(routerAgentPrompt));
             HumanAgent = humanProxy ?? throw new ArgumentNullException(nameof(humanProxy));
             SpecializedAgents = agents?.ToList() ?? throw new ArgumentNullException(nameof(agents));
+
+            if (string.IsNullOrEmpty(routerAgentPrompt))
+                routerAgentPrompt = CreateSystemPrompt();
+
             SetSystemMessage(routerAgentPrompt);
             var sessionId = Guid.NewGuid().ToString("N");
             InitializeSession(sessionId);

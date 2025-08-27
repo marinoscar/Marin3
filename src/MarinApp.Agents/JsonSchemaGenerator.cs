@@ -27,13 +27,13 @@ namespace MarinApp.Agents
             var obj = new JsonObject
             {
                 ["$schema"] = "http://json-schema.org/draft-07/schema#",
-                ["type"] = "object",
+                ["type"] = "object",    
                 ["additionalProperties"] = additionalProperties,
-                ["properties"] = root["properties"] ?? new JsonObject()
+                ["properties"] = root["properties"].DeepClone() ?? new JsonObject()
             };
 
-            if (root["required"] is JsonArray req) obj["required"] = req;
-            if (definitions.Count > 0) obj["definitions"] = definitions;
+            if (root["required"] is JsonArray req) obj["required"] = req.DeepClone();
+            if (definitions.Count > 0) obj["definitions"] = definitions.DeepClone();
 
             return JsonDocument.Parse(obj.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
         }
