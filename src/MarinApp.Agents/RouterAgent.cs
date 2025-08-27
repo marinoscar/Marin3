@@ -32,11 +32,17 @@ namespace MarinApp.Agents
             SetAgentDetails("router-agent", "Router Agent", "An AI agent that routes user requests to the appropriate specialized agent based on the content of the request.");
             ModelId = "gpt-4o";
             var schema = JsonSchemaGenerator.Generate<RouteDecision>();
+
+            var responseFormat = OpenAI.Chat.ChatResponseFormat.CreateJsonSchemaFormat(
+                    jsonSchemaFormatName: "agent_output",
+                    jsonSchema: BinaryData.FromString(schema.RootElement.GetRawText()),
+                    jsonSchemaIsStrict: true);
+
             DefaultExecutionSettings = new OpenAIPromptExecutionSettings()
             {
                 ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions,
                 Temperature = 0,
-                ResponseFormat = ChatResponseFormat.ForJsonSchema(schema.RootElement),
+                ResponseFormat = responseFormat,
                 User = Name,
             };
         }
@@ -61,6 +67,7 @@ namespace MarinApp.Agents
 
         private void InitializeSession(string sessionId)
         {
+            SetSession(sessionId);
             HumanAgent.SetSession(sessionId);
             foreach (var agent in SpecializedAgents)
             {
@@ -70,13 +77,13 @@ namespace MarinApp.Agents
 
         public async Task SetGoalAsync(string goal, int maxInterations = 32, CancellationToken cancellationToken = default)
         {
-            if(!IsInitialized) throw new InvalidOperationException("RouterAgent is not initialized. Call InitializeAgents() first.");
+            if (!IsInitialized) throw new InvalidOperationException("RouterAgent is not initialized. Call InitializeAgents() first.");
 
             //Send the goal to the router agent to determine the next agent
             var routerDecision = await MessageRouterAsync(goal, cancellationToken);
             // Get the next agent to invoke
             var next = GetNext(routerDecision.Decision);
-            
+
             //Initialize the common session history
             var agentHistory = new AgentHistory();
 
@@ -99,7 +106,8 @@ namespace MarinApp.Agents
                 var agentResponse = await next.Next.SendMessageAsync(prompt, null, cancellationToken);
 
                 // Add the agent response to the common history
-                agentHistory.Add(new AgentItem() { 
+                agentHistory.Add(new AgentItem()
+                {
                     Id = agentResponse.Id,
                     Content = agentResponse.MessageContent,
                     AgentMessage = agentResponse
@@ -129,7 +137,7 @@ namespace MarinApp.Agents
             if (decision == null)
                 throw new ArgumentNullException(nameof(decision));
 
-            if(decision.GoalCompleted)
+            if (decision.GoalCompleted)
                 return new NextAgent { Stop = true, Next = null, Rationale = "Task marked as completed." };
 
             if (string.IsNullOrEmpty(decision.Next))

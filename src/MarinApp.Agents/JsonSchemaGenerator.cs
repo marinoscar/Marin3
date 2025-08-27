@@ -76,7 +76,7 @@ namespace MarinApp.Agents
 
                 // Required?
                 bool hasRequired = prop.GetCustomAttribute<RequiredAttribute>() != null;
-                if (hasRequired && !isNullable)
+                if (hasRequired)
                     required.Add(prop.Name);
 
                 propsObj[prop.Name] = schema;
