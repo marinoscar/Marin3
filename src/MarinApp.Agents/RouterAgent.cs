@@ -126,7 +126,7 @@ namespace MarinApp.Agents
             if (decision == null)
                 throw new ArgumentNullException(nameof(decision));
 
-            if(decision.TaskCompleted)
+            if(decision.GoalCompleted)
                 return new NextAgent { Stop = true, Next = null, Rationale = "Task marked as completed." };
 
             if (string.IsNullOrEmpty(decision.Next))

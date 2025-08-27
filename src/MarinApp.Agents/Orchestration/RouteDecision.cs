@@ -23,9 +23,9 @@ namespace MarinApp.Agents.Orchestration
         [Required]
         public double Confidence { get; set; }
 
-        [Description("Set to true when you feel the task is completed.")]
+        [Description("Set to true when you feel the goal is completed.")]
         [Required]
-        public bool TaskCompleted { get; set; }
+        public bool GoalCompleted { get; set; }
 
         }
 }
