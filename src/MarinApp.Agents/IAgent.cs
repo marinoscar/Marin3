@@ -128,6 +128,15 @@ namespace MarinApp.Agents
         void SetSystemMessage<T>(string template, T data);
 
         /// <summary>
+        /// Sets the agent's identifying details.
+        /// </summary>
+        /// <param name="id">The unique identifier for the agent.</param>
+        /// <param name="name">The display name of the agent. If null or whitespace, <paramref name="id"/> is used.</param>
+        /// <param name="description">The description of the agent.</param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="id"/> is null or whitespace.</exception>
+        void SetAgentDetails(string id, string name = default!, string description = default!);
+
+        /// <summary>
         /// Starts a new session and resets the chat history.
         /// </summary>
         /// <returns>The new session identifier.</returns>

@@ -206,7 +206,7 @@ namespace MarinApp.Agents
                             Metadata = string.IsNullOrWhiteSpace(m.Metadata) ? new Dictionary<string, object>() : JsonSerializer.Deserialize<Dictionary<string, object>>(m.Metadata) ?? new Dictionary<string, object>()
                         }
                     };
-                    
+
                     History.Add(item);
                 }
                 catch (Exception ex)
@@ -413,14 +413,8 @@ namespace MarinApp.Agents
             }
         }
 
-        /// <summary>
-        /// Sets the agent's identifying details.
-        /// </summary>
-        /// <param name="id">The unique identifier for the agent.</param>
-        /// <param name="name">The display name of the agent. If null or whitespace, <paramref name="id"/> is used.</param>
-        /// <param name="description">The description of the agent.</param>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="id"/> is null or whitespace.</exception>
-        protected virtual void SetAgentDetails(string id, string name = default!, string description = default!)
+        /// <inheritdoc/>
+        public virtual void SetAgentDetails(string id, string name = default!, string description = default!)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
