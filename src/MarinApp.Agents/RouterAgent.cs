@@ -214,7 +214,7 @@ namespace MarinApp.Agents
                 {
                     throw new InvalidOperationException("Failed to parse the routing decision from the agent's response.");
                 }
-                return new RouteResponse();
+                return new RouteResponse() { Decision = decision, Message = response }; 
             }
             catch (JsonException ex)
             {
