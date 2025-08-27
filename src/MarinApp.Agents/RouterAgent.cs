@@ -34,7 +34,7 @@ namespace MarinApp.Agents
             JsonObject schema = (JsonObject)JsonObject.Parse(JsonSchemaGenerator.Generate<RouteDecision>().RootElement.GetRawText());
 
             //set the oneOf values from the specialized agents
-            SetOneOfOnNext(schema, SpecializedAgents.Append(HumanAgent).ToArray());
+            SetEnumOnNext(schema, SpecializedAgents.Append(HumanAgent).Select(i => i.Name).Distinct().ToArray());
 
             var responseFormat = OpenAI.Chat.ChatResponseFormat.CreateJsonSchemaFormat(
                     jsonSchemaFormatName: "agent_output",
@@ -50,7 +50,7 @@ namespace MarinApp.Agents
             };
         }
 
-        static void SetOneOfOnNext(JsonObject schema, IAgent[] options)
+        private void SetOneOfOnNext(JsonObject schema, IAgent[] options)
         {
             var props = schema["properties"]?.AsObject()
                 ?? throw new InvalidOperationException("schema.properties missing");
@@ -76,6 +76,23 @@ namespace MarinApp.Agents
             }));
 
         }
+
+        private void SetEnumOnNext(JsonObject schema, params string[] options)
+        {
+            var props = schema["properties"]?.AsObject()
+                ?? throw new InvalidOperationException("schema.properties missing");
+
+            var next = props["Next"] as JsonObject
+                ?? throw new InvalidOperationException("schema.properties.Next must be an object");
+
+            // Ensure it's a string with enum restriction
+            next["type"] = "string";
+
+            var enumArr = new JsonArray();
+            foreach (var opt in options) enumArr.Add(opt); // JsonArray will wrap as JsonValue
+            next["enum"] = enumArr;
+        }
+
 
         public void InitializeAgents(IHumanProxy humanProxy, params IAgent[] agents)
         {
