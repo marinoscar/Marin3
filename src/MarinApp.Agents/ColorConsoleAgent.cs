@@ -50,7 +50,7 @@ namespace MarinApp.Agents
         /// </param>
         public ColorConsoleAgent(IAgentHistoryService agentHistoryService, IConfiguration configuration, ILoggerFactory loggerFactory) : base(agentHistoryService, configuration, loggerFactory)
         {
-            SetAgentDetails("color-console-agent", "Color Console Agent", "An agent that interacts with the user via a color console interface.");
+            SetAgentDetails("human-agent", "Human Agent", "An agent that interacts with the user via a color console interface.");
         }
 
         /// <summary>
