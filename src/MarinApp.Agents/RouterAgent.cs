@@ -25,7 +25,7 @@ namespace MarinApp.Agents
         public IHumanProxy HumanAgent { get; private set; }
         public IList<IAgent> SpecializedAgents { get; private set; }
 
-        public bool IsInitialized => HumanAgent != null && SpecializedAgents != null && SpecializedAgents.Count > 0 && string.IsNullOrEmpty(SystemPrompt);
+        public bool IsInitialized => HumanAgent != null && SpecializedAgents != null && SpecializedAgents.Count > 0 && !string.IsNullOrEmpty(SystemPrompt);
 
         protected virtual void Initialize()
         {
