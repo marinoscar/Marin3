@@ -81,7 +81,7 @@ namespace MarinApp.Terminal
         {
             var config = host.Services.GetRequiredService<IConfiguration>();
             var agent = new TestAgent(config);
-            agent.Run();
+            agent.RunMultipleAgents();
         }
 
 
