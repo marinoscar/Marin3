@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 
 namespace MarinApp.Agents
@@ -19,7 +20,6 @@ namespace MarinApp.Agents
     {
         public RouterAgent(IAgentHistoryService agentHistoryService, ILoggerFactory loggerFactory, IConfiguration configuration) : base(agentHistoryService, loggerFactory, configuration)
         {
-            Initialize();
         }
 
         public IHumanProxy HumanAgent { get; private set; }
@@ -31,11 +31,14 @@ namespace MarinApp.Agents
         {
             SetAgentDetails("router-agent", "Router Agent", "An AI agent that routes user requests to the appropriate specialized agent based on the content of the request.");
             ModelId = "gpt-4o";
-            var schema = JsonSchemaGenerator.Generate<RouteDecision>();
+            JsonObject schema = (JsonObject)JsonObject.Parse(JsonSchemaGenerator.Generate<RouteDecision>().RootElement.GetRawText());
+
+            //set the oneOf values from the specialized agents
+            SetOneOfOnNext(schema, SpecializedAgents.Append(HumanAgent).ToArray());
 
             var responseFormat = OpenAI.Chat.ChatResponseFormat.CreateJsonSchemaFormat(
                     jsonSchemaFormatName: "agent_output",
-                    jsonSchema: BinaryData.FromString(schema.RootElement.GetRawText()),
+                    jsonSchema: BinaryData.FromString(schema.ToJsonString()),
                     jsonSchemaIsStrict: true);
 
             DefaultExecutionSettings = new OpenAIPromptExecutionSettings()
@@ -47,6 +50,33 @@ namespace MarinApp.Agents
             };
         }
 
+        static void SetOneOfOnNext(JsonObject schema, IAgent[] options)
+        {
+            var props = schema["properties"]?.AsObject()
+                ?? throw new InvalidOperationException("schema.properties missing");
+
+            var next = props["Next"] as JsonObject
+                ?? throw new InvalidOperationException("schema.properties.Next must be an object");
+
+            var oneOf = new JsonArray();
+            foreach (var a in options)
+            {
+                oneOf.Add(new JsonObject
+                {
+                    ["const"] = a.Name,
+                    ["title"] = a.Name,
+                    ["description"] = a.Description ?? ""
+                });
+            }
+
+            next["oneOf"] = oneOf;
+
+            Debug.WriteLine(schema.ToJsonString(new JsonSerializerOptions() { 
+                WriteIndented = true
+            }));
+
+        }
+
         public void InitializeAgents(IHumanProxy humanProxy, params IAgent[] agents)
         {
             InitializeAgents(null, humanProxy, agents);
@@ -56,6 +86,8 @@ namespace MarinApp.Agents
         {
             HumanAgent = humanProxy ?? throw new ArgumentNullException(nameof(humanProxy));
             SpecializedAgents = agents?.ToList() ?? throw new ArgumentNullException(nameof(agents));
+
+            Initialize();
 
             if (string.IsNullOrEmpty(routerAgentPrompt))
                 routerAgentPrompt = CreateSystemPrompt();
