@@ -58,45 +58,43 @@ namespace MarinApp.Core.Configuration
             return builder.ConnectionString;
         }
 
-        /// <summary>
-        /// Retrieves the value of an environment variable by searching in multiple scopes.
+
+        ///<summary>
+        /// Retrieves the value of the specified environment variable, searching in the process, user, and machine scopes.
+        /// If the environment variable is not set in any scope, returns the provided default value.
         /// </summary>
-        /// <param name="name">
-        /// The name of the environment variable to retrieve.  
-        /// This parameter must not be <c>null</c> or empty.
-        /// </param>
+        /// <param name="name">The name of the environment variable to retrieve.</param>
         /// <param name="defaultValue">
-        /// The value to return if the environment variable is not found in any scope.  
-        /// Defaults to <c>default!</c>, which is <c>null</c> for reference types unless explicitly provided.
+        /// The default value to return if the environment variable is not set in any scope.
+        /// If not provided and the variable is not set, an <see cref="ArgumentException"/> is thrown.
         /// </param>
         /// <returns>
-        /// The value of the environment variable if found; otherwise, the <paramref name="defaultValue"/>.  
-        /// The method checks the following scopes in order:
-        /// <list type="number">
-        ///   <item><description>Process-level environment variables</description></item>
-        ///   <item><description>User-level environment variables</description></item>
-        ///   <item><description>Machine-level (system-wide) environment variables</description></item>
-        /// </list>
-        /// If none of these contain the variable, <paramref name="defaultValue"/> is returned.
+        /// The value of the environment variable if found; otherwise, the <paramref name="defaultValue"/>.
         /// </returns>
+        /// <exception cref="ArgumentException">
+        /// Thrown if the environment variable is not set in any scope and <paramref name="defaultValue"/> is <c>null</c> or empty.
+        /// </exception>
         /// <remarks>
-        /// <para>
-        /// This method is useful when you want to provide a fallback for configuration values
-        /// that may be set in different scopes (process, user, or machine).
-        /// </para>
-        /// <para>
-        /// Example usage:
-        /// <code>
-        /// string connectionString = GetEnvironmentVariable("DB_CONNECTION", "Server=localhost;Database=myDb;");
-        /// </code>
-        /// </para>
+        /// This method checks for the environment variable in the following order:
+        /// <list type="number">
+        /// <item>Process-level environment variables.</item>
+        /// <item>User-level environment variables.</item>
+        /// <item>Machine-level environment variables.</item>
+        /// </list>
+        /// If the variable is not found in any scope, the <paramref name="defaultValue"/> is returned.
+        /// If <paramref name="defaultValue"/> is not provided, an exception is thrown.
         /// </remarks>
         public static string? GetEnvironmentVariable(string name, string defaultValue = default!)
         {
-            return Environment.GetEnvironmentVariable(name) ?? 
-                   Environment.GetEnvironmentVariable(name, EnvironmentVariableTarget.User) ?? 
-                   Environment.GetEnvironmentVariable(name, EnvironmentVariableTarget.Machine) ??
-                   defaultValue;
+            var result = Environment.GetEnvironmentVariable(name) ??
+                   Environment.GetEnvironmentVariable(name, EnvironmentVariableTarget.User) ??
+                   Environment.GetEnvironmentVariable(name, EnvironmentVariableTarget.Machine);
+
+            if (!string.IsNullOrEmpty(result)) return result;
+
+            if (string.IsNullOrEmpty(defaultValue)) throw new ArgumentException($"Environment variable '{name}' is not set and no default value was provided.", nameof(name));
+            else
+                return defaultValue;
         }
 
     }
