@@ -4,6 +4,7 @@ using MarinApp.Core.Configuration;
 using MarinApp.Core.Data;
 using MarinApp.Core.Extensions;
 using MarinApp.Expenses;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
 using System.Diagnostics;
@@ -18,6 +19,12 @@ namespace MarinApp
 
             // Add the logging
             builder.AddApplicationLogging();
+
+            //Add data protection persistence
+            builder.Services
+                .AddDataProtection()
+                .PersistKeysToFileSystem(new DirectoryInfo("/keys"))  // same as volume mount
+                .SetApplicationName("MarinApp");
 
             // If debbugging add the debug level to debug
             if (Debugger.IsAttached)
@@ -78,7 +85,7 @@ namespace MarinApp
             app.MapStaticAssets();
             app.MapRazorComponents<App>()
                 .AddInteractiveServerRenderMode();
-            
+
             app.Run();
         }
     }
