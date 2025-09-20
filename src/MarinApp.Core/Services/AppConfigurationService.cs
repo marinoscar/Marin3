@@ -45,7 +45,7 @@ namespace MarinApp.Core.Services
         /// representing all configuration entities in the database.
         /// </returns>
         /// <exception cref="Exception">Throws if an error occurs during retrieval.</exception>
-        public Task<IQueryable<AppConfiguration>> GetAll(CancellationToken cancellationToken)
+        public Task<IQueryable<AppConfiguration>> GetAllAsync(CancellationToken cancellationToken = default)
         {
             try
             {

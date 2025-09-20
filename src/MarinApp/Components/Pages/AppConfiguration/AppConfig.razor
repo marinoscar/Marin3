@@ -3,8 +3,70 @@
 @using MarinApp.Core.Data
 @using MarinApp.Core.Entities
 @using MarinApp.Core.Services
-@inject IDbContextFactory<AppDataContext> ContextFactory
-@inject ILogger<AppConfig> Logger
+@inject AppConfigurationService Service
 @inject NavigationManager Navigation
 
 
+<MudPaper Class="pa-4">
+    <MudDataGrid T="AppConfiguration"
+                 Items="@appConfigurations"
+                 Filterable="true"
+                 Sortable="true"
+                 Hover="true"
+                 Bordered="true"
+                 ColumnResizeMode="ResizeMode.Container"
+                 Groupable="true"
+                 RowClick="OnRowClick">
+
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Application Configurations</MudText>
+            <MudSpacer />
+            <MudButton Color="Color.Primary" OnClick="AddNew">
+                Add Configuration
+            </MudButton>
+        </ToolBarContent>
+        <Columns>
+            <PropertyColumn Property="x => x.Key" Title="Configuration Key" Sortable="true" Groupable="true" />
+            <TemplateColumn Title="Configuration Value">
+                <CellTemplate>
+                    <MudTooltip Text="@context.Item.Value">
+                        <div style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+                            @FixSize(context.Item.Value)
+                        </div>
+                    </MudTooltip>
+                </CellTemplate>
+            </TemplateColumn>
+            <PropertyColumn Property="x => x.Environment" Title="Environment" GroupBy="y => y.Key" />
+        </Columns>
+
+    </MudDataGrid>
+</MudPaper>
+
+@code {
+    // Sample data
+    private List<AppConfiguration> appConfigurations = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        appConfigurations = (await Service.GetAllAsync()).ToList();
+    }
+
+    private void OnRowClick(DataGridRowClickEventArgs<AppConfiguration> args)
+    {
+        var config = args.Item;
+        Console.WriteLine($"Clicked row: {config.Key}");
+    }
+
+    private string FixSize(string text){
+        if(string.IsNullOrEmpty(text))
+            return text;
+        if(text.Length > 50)
+            return text.Substring(0, 50) + "...";
+        return text;
+    }
+
+    private void AddNew()
+    {
+        appConfigurations.Add(new AppConfiguration { Key = "NewSetting", Value = "Default", Environment = null });
+    }
+}
