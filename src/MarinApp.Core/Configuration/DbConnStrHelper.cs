@@ -20,7 +20,7 @@ namespace MarinApp.Core.Configuration
     /// <item><description><c>DB_PASSWORD</c>: The database user password (default: "your_password").</description></item>
     /// </list>
     /// </remarks>
-    public class DbConnectionStringHelper
+    public class DbConnStrHelper
     {
         /// <summary>
         /// Gets the PostgreSQL connection string for the specified database.

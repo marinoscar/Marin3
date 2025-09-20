@@ -37,7 +37,7 @@ namespace MarinApp
             // Add Context Factory
             builder.Services.AddDbContextFactory<Core.Data.AppDataContext>(options =>
             {
-                options.UseNpgsql(DbConnectionStringHelper.GetConnectionString())
+                options.UseNpgsql(DbConnStrHelper.GetConnectionString())
                 .LogTo(Console.WriteLine);
             });
 
@@ -59,7 +59,7 @@ namespace MarinApp
 
 
             // Add the expenses app
-            builder.Services.AddExpensesApp(DbConnectionStringHelper.GetConnectionString());
+            builder.Services.AddExpensesApp(DbConnStrHelper.GetConnectionString());
 
             var app = builder.Build();
 

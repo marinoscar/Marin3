@@ -42,7 +42,7 @@ namespace MarinApp.Configuration
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.Console()
                 .WriteTo.PostgreSQL(
-                    connectionString: DbConnectionStringHelper.GetConnectionString(),
+                    connectionString: DbConnStrHelper.GetConnectionString(),
                     tableName: "SeriLogs",
                     needAutoCreateTable: true) // will create table if not exists
                 .CreateLogger();
@@ -66,7 +66,7 @@ namespace MarinApp.Configuration
         /// This method performs the following steps:
         /// <list type="number">
         /// <item>Builds a temporary service provider to retrieve the application <see cref="IConfiguration"/> instance.</item>
-        /// <item>Retrieves the database connection string using <see cref="DbConnectionStringHelper.GetConnectionString"/>.</item>
+        /// <item>Retrieves the database connection string using <see cref="DbConnStrHelper.GetConnectionString"/>.</item>
         /// <item>Creates a new <see cref="PostgresAuthMateContext"/> for AuthMate data storage.</item>
         /// <item>Registers AuthMate services with the dependency injection container, providing the bearing token key and a factory for the PostgreSQL context.</item>
         /// <item>Configures Google OAuth authentication using values from configuration:
@@ -89,7 +89,7 @@ namespace MarinApp.Configuration
             try
             {
                 var config = s.BuildServiceProvider().GetRequiredService<IConfiguration>();
-                var connString = DbConnectionStringHelper.GetConnectionString();
+                var connString = DbConnStrHelper.GetConnectionString();
 
 
                 // Add the database context for AuthMate

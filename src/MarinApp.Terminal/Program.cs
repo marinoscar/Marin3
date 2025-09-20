@@ -48,7 +48,7 @@ namespace MarinApp.Terminal
             //Add Context Factory
             builder.Services.AddDbContextFactory<AppDataContext>(options =>
             {
-                options.UseNpgsql(DbConnectionStringHelper.GetConnectionString())
+                options.UseNpgsql(DbConnStrHelper.GetConnectionString())
                 .LogTo(Console.WriteLine);
             });
 

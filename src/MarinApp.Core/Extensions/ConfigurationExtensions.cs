@@ -40,8 +40,8 @@ namespace MarinApp.Core.Extensions
         public static IHostApplicationBuilder AddAppConfigurationProvider(this IHostApplicationBuilder builder)
         {
             // Setup the configuration data source
-            var env = DbConnectionStringHelper.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Production");
-            var connString = DbConnectionStringHelper.GetConnectionString();
+            var env = DbConnStrHelper.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Production");
+            var connString = DbConnStrHelper.GetConnectionString();
             var serviceProvider = builder.Services.BuildServiceProvider();
             var factory = serviceProvider.GetRequiredService<IDbContextFactory<AppDataContext>>();
 
