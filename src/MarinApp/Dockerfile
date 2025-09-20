@@ -25,5 +25,14 @@ RUN dotnet publish "./MarinApp.csproj" -c $BUILD_CONFIGURATION -o /app/publish /
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
 WORKDIR /app
+
+# create the dir in the final image (use root for this layer)
+USER 0:0
+RUN mkdir -p /home/app/.aspnet/DataProtection-Keys \
+    && chown -R 1654:1654 /home/app/.aspnet
+
+# switch to app user for runtime
+USER 1654:1654
+
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "MarinApp.dll"]

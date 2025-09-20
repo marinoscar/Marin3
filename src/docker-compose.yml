@@ -1,11 +1,18 @@
 services:
+  init-perms:
+    image: busybox
+    command: sh -c "mkdir -p /keys && chown -R 1654:1654 /keys"
+    volumes:
+      - dpkeys:/keys
+    restart: "no"
+
   marinapp:
     image: ${DOCKER_REGISTRY-}marinapp
     build:
       context: .
       dockerfile: MarinApp/Dockerfile
     volumes:
-      - dpkeys:/keys   # persistent key ring
+      - dpkeys:/home/app/.aspnet/DataProtection-Keys   # persistent key ring
     ports:
       - "9095:9095"
       - "9096:9096"
