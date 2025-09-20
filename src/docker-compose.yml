@@ -5,13 +5,13 @@ services:
       context: .
       dockerfile: MarinApp/Dockerfile
     ports:
-      - "9097:9097"
-      - "9098:9098"
+      - "9095:9095"
+      - "9096:9096"
     environment:
       # Postgres connection
       MARIN_APP_DB_SERVER: ${MARIN_APP_DB_SERVER}
       MARIN_APP_DB_PORT: 5432
       MARIN_APP_DB_USER: ${MARIN_APP_DB_USER}
       MARIN_APP_DB_PASSWORD: ${MARIN_APP_DB_PASSWORD}
-      ASPNETCORE_URLS: http://+:9097
+      ASPNETCORE_URLS: http://+:9095
     restart: unless-stopped
