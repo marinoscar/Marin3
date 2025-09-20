@@ -15,8 +15,6 @@ namespace MarinApp
     {
         public static void Main(string[] args)
         {
-            DotEnv.Load(); // loads .env into process env
-
             var builder = WebApplication.CreateBuilder(args);
 
             // Add the logging
