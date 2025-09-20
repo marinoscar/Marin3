@@ -21,9 +21,10 @@ namespace MarinApp
             builder.AddApplicationLogging();
 
             //Add data protection persistence
+            var keyPath = "/home/app/.aspnet/DataProtection-Keys";
             builder.Services
                 .AddDataProtection()
-                .PersistKeysToFileSystem(new DirectoryInfo("/keys"))  // same as volume mount
+                .PersistKeysToFileSystem(new DirectoryInfo(keyPath))  // same as volume mount
                 .SetApplicationName("MarinApp");
 
             // If debbugging add the debug level to debug
