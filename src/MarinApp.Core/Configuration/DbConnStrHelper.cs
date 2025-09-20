@@ -34,26 +34,17 @@ namespace MarinApp.Core.Configuration
         /// string connStr = DbConnectionStringHelper.GetConnectionString("MyDatabase");
         /// </code>
         /// </example>
-        /// <remarks>
-        /// The following environment variables are used (with defaults if not set):
-        /// <list type="bullet">
-        /// <item><description><c>DB_SERVER</c>: Database server host (default: "localhost")</description></item>
-        /// <item><description><c>DB_PORT</c>: Database server port (default: "5432")</description></item>
-        /// <item><description><c>DB_USER</c>: Database user (default: "admin")</description></item>
-        /// <item><description><c>DB_PASSWORD</c>: Database password (default: "your_password")</description></item>
-        /// </list>
-        /// </remarks>
         public static string GetConnectionString(string dbName = "marinapp")
         {
             var port = GetEnvironmentVariable("DB_PORT", "5432");
 
             var builder = new Npgsql.NpgsqlConnectionStringBuilder
             {
-                Host = GetEnvironmentVariable("DB_SERVER", "localhost"),
+                Host = GetEnvironmentVariable("DB_SERVER"),
                 Port = int.Parse(port),
                 Database = dbName,
-                Username = GetEnvironmentVariable("DB_USER", "admin"),
-                Password = GetEnvironmentVariable("DB_PASSWORD", "your_password"),
+                Username = GetEnvironmentVariable("DB_USER"),
+                Password = GetEnvironmentVariable("DB_PASSWORD"),
             };
             return builder.ConnectionString;
         }
