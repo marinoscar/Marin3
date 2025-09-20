@@ -11,9 +11,9 @@ services:
       - .env
     environment:
       # Postgres connection
-      DB_SERVER: ${DB_SERVER}
-      DB_PORT: 5432
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
+      MARIN_APP_DB_SERVER: ${MARIN_APP_DB_SERVER}
+      MARIN_APP_DB_PORT: 5432
+      MARIN_APP_DB_USER: ${MARIN_APP_DB_USER}
+      MARIN_APP_DB_PASSWORD: ${MARIN_APP_DB_PASSWORD}
       ASPNETCORE_URLS: http://+:9095
     restart: unless-stopped

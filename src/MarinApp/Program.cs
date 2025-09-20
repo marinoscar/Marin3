@@ -1,4 +1,3 @@
-using dotenv.net;
 using MarinApp.Components;
 using MarinApp.Configuration;
 using MarinApp.Core.Configuration;

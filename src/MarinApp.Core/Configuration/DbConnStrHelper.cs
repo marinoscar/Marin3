@@ -42,7 +42,7 @@ namespace MarinApp.Core.Configuration
         /// string connStr = DbConnectionStringHelper.GetConnectionString("MyDatabase");
         /// </code>
         /// </example>
-        public static string GetConnectionString(string dbName)
+        public static string GetConnectionString(string dbName = "marinapp")
         {
             var port = Env.GetVariable(EnvVariableDbPort, "5432");
 
