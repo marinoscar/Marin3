@@ -35,7 +35,7 @@ namespace MarinApp.Core.Configuration
         /// </remarks>
         public static string GetVariable(string name, string defaultValue = default!)
         {
-            var result = Environment.GetEnvironmentVariable(name) ??
+            var result = Environment.GetEnvironmentVariable(name, EnvironmentVariableTarget.Process) ??
                    Environment.GetEnvironmentVariable(name, EnvironmentVariableTarget.User) ??
                    Environment.GetEnvironmentVariable(name, EnvironmentVariableTarget.Machine);
 

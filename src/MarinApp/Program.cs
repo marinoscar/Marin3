@@ -14,6 +14,8 @@ namespace MarinApp
     {
         public static void Main(string[] args)
         {
+            var f = Environment.GetEnvironmentVariable("MARIN_APP_DB_USER");
+
             var builder = WebApplication.CreateBuilder(args);
 
             // Add the logging
