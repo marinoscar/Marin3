@@ -33,7 +33,7 @@ namespace MarinApp.Core.Configuration
         /// If the variable is not found in any scope, the <paramref name="defaultValue"/> is returned.
         /// If <paramref name="defaultValue"/> is not provided, an exception is thrown.
         /// </remarks>
-        public static string? GetVariable(string name, string defaultValue = default!)
+        public static string GetVariable(string name, string defaultValue = default!)
         {
             var result = Environment.GetEnvironmentVariable(name) ??
                    Environment.GetEnvironmentVariable(name, EnvironmentVariableTarget.User) ??
