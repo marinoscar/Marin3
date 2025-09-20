@@ -45,5 +45,34 @@ namespace MarinApp.Core.Configuration
             else
                 return defaultValue;
         }
+
+        /// <summary>
+        /// Sets the specified environment variable at the user level.
+        /// </summary>
+        /// <param name="name">The name of the environment variable to set.</param>
+        /// <param name="value">The value to assign to the environment variable.</param>
+        /// <remarks>
+        /// This method sets the environment variable for the current user. 
+        /// The change will persist for future processes started by the user.
+        /// </remarks>
+        public static void SetUserVariable(string name, string value)
+        {
+            Environment.SetEnvironmentVariable(name, value, EnvironmentVariableTarget.User);
+        }
+
+        /// <summary>
+        /// Sets the specified environment variable at the machine level.
+        /// </summary>
+        /// <param name="name">The name of the environment variable to set.</param>
+        /// <param name="value">The value to assign to the environment variable.</param>
+        /// <remarks>
+        /// This method sets the environment variable for the entire machine. 
+        /// The change will persist for future processes started on the machine.
+        /// Requires appropriate permissions.
+        /// </remarks>
+        public static void SetMachineVariable(string name, string value)
+        {
+            Environment.SetEnvironmentVariable(name, value, EnvironmentVariableTarget.Machine);
+        }
     }
 }
