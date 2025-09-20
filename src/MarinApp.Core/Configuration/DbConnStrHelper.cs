@@ -22,6 +22,14 @@ namespace MarinApp.Core.Configuration
     /// </remarks>
     public class DbConnStrHelper
     {
+
+        public const string EnvVariableDbServer = "MARIN_APP_DB_SERVER";
+        public const string EnvVariableDbPort = "MARIN_APP_DB_PORT";
+        public const string EnvVariableDbUser = "MARIN_APP_DB_USER";
+        public const string EnvVariableDbPassword = "MARIN_APP_DB_PASSWORD";
+        public const string EnvVariableDbName = "MARIN_APP_DB_NAME";
+
+
         /// <summary>
         /// Gets the PostgreSQL connection string for the specified database.
         /// </summary>
@@ -34,17 +42,17 @@ namespace MarinApp.Core.Configuration
         /// string connStr = DbConnectionStringHelper.GetConnectionString("MyDatabase");
         /// </code>
         /// </example>
-        public static string GetConnectionString(string dbName = "marinapp")
+        public static string GetConnectionString(string dbName)
         {
-            var port = Env.GetVariable("DB_PORT", "5432");
+            var port = Env.GetVariable(EnvVariableDbPort, "5432");
 
             var builder = new Npgsql.NpgsqlConnectionStringBuilder
             {
-                Host = Env.GetVariable("DB_SERVER"),
+                Host = Env.GetVariable(EnvVariableDbServer),
                 Port = int.Parse(port),
-                Database = dbName,
-                Username = Env.GetVariable("DB_USER"),
-                Password = Env.GetVariable("DB_PASSWORD"),
+                Database = Env.GetVariable(EnvVariableDbName, "marinapp"),
+                Username = Env.GetVariable(EnvVariableDbUser),
+                Password = Env.GetVariable(EnvVariableDbPassword),
             };
             return builder.ConnectionString;
         }
