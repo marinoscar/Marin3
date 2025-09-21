@@ -293,9 +293,3 @@ sudo nginx -t && sudo systemctl reload nginx
 * Let’s Encrypt certs auto-renew; your email `oscar@marin.cr` gets expiry notices.
 
 ---
-
-✅ Following these steps, you’ll have a fully containerized ASP.NET Core app running behind Nginx with HTTPS on **[https://app.marin.cr](https://app.marin.cr)**, ready to redeploy anytime.
-
----
-
-Do you want me to also include in this KB the **final Nginx config file** after Certbot edits it (with both `listen 80` and `listen 443 ssl` blocks), so you know exactly what to expect in `/etc/nginx/sites-available/marinapp.conf`?
