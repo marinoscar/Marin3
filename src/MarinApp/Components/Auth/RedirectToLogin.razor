@@ -1,8 +1,11 @@
 ﻿@inject NavigationManager Nav
 
+@attribute [AllowAnonymous]
+
 @code {
-    protected override void OnInitialized()
+
+   protected override void OnAfterRender(bool firstRender)
     {
-        Nav.NavigateTo("/api/auth/login", true); // true = force reload
+        Nav.NavigateTo("/login", true);
     }
 }
