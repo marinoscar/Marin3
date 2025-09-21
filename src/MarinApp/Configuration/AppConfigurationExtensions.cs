@@ -115,7 +115,8 @@ namespace MarinApp.Configuration
                     ClientSecret = config["OAuthProviders:Google:ClientSecret"] ?? throw new ArgumentNullException("The Google client secret is required"),
                     // Set the login path in the controller and pass the provider name
                     LoginPath = loginUrl,
-                    ReturnUrlParameter = parameters
+                    ReturnUrlParameter = parameters,
+                    SaveTokens = true
                 });
 
                 // Creates the context
