@@ -38,7 +38,9 @@
             </TemplateColumn>
             <PropertyColumn Property="x => x.Environment" Title="Environment" GroupBy="y => y.Key" />
         </Columns>
-
+        <PagerContent>
+            <MudDataGridPager T="AppConfiguration" />
+        </PagerContent>
     </MudDataGrid>
 </MudPaper>
 
