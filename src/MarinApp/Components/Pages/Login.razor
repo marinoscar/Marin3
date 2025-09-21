@@ -52,17 +52,25 @@
     public string ReturnUrl { get; set; } = "/";
 
     private DeviceInfo DeviceInfo { get; set; } = new DeviceInfo();
+    private bool redirected = false;
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !redirected)
+        {
+            await DoNavigate();
+        }
+    }
 
-    protected override async Task OnInitializedAsync()
+    private async Task DoNavigate()
     {
         await GetDeviceInfo();
         var info = string.Empty;
         if (DeviceInfo != null) info = DeviceInfo.ToBase64();
         var returnUrl = HttpUtility.UrlEncode(ReturnUrl);
         info = HttpUtility.UrlEncode(info);
+        redirected = true;
         Navigation.NavigateTo(string.Format("{0}?provider={1}&deviceInfo={2}&returnUrl={3}", LoginUrl, ProviderName, info, returnUrl), true);
-
     }
 
     private async Task GetDeviceInfo()
