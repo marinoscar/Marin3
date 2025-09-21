@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Serilog;
 using Serilog.Events;
+using System.Web;
 
 namespace MarinApp.Configuration
 {
@@ -103,6 +104,9 @@ namespace MarinApp.Configuration
                 });
 
                 // Adds the Google Authentication
+                var loginUrl = config["OAuthProviders:Google:LoginPath"] ?? "/api/auth";
+                var parameters = config["OAuthProviders:Google:ReturnUrl"] ?? "provider=Google&deviceInfo=&returnUrl=";
+                
                 s.AddAuthMateAuthentication(new GoogleOAuthConfiguration()
                 {
                     // Client ID from your config file
@@ -110,7 +114,7 @@ namespace MarinApp.Configuration
                     // Client secret from your config file
                     ClientSecret = config["OAuthProviders:Google:ClientSecret"] ?? throw new ArgumentNullException("The Google client secret is required"),
                     // Set the login path in the controller and pass the provider name
-                    LoginPath = config["OAuthProviders:Google:LoginPath"] ?? "/api/auth",
+                    LoginPath = loginUrl,
                 });
 
                 // Creates the context
